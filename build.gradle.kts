@@ -33,6 +33,10 @@ dependencies {
     testRuntimeOnly("org.threeten:threeten-extra:1.8.0")
 }
 
+tasks.withType<Test> {
+    jvmArgs("-Xmx1g", "-Xms512m")
+}
+
 tasks.withType<JavaCompile> {
     options.compilerArgs.add("-Arewrite.javaParserClasspathFrom=resources")
 }
