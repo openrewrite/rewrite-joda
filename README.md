@@ -23,7 +23,7 @@
 
 ### What is this?
 
-This is a template repository for creating new OpenRewrite modules. It provides a starting point with the necessary structure and configuration to help you get started quickly.
+This project implements a [Rewrite module](https://github.com/openrewrite/rewrite) for Joda-Time.
 
 ## Contributing
 
