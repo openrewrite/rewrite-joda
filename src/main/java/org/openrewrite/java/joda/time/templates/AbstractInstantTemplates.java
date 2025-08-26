@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.migrate.joda.templates;
+package org.openrewrite.java.joda.time.templates;
 
 import lombok.Getter;
 import org.openrewrite.java.JavaTemplate;
@@ -27,7 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static org.openrewrite.java.migrate.joda.templates.TimeClassNames.*;
+import static org.openrewrite.java.joda.time.templates.TimeClassNames.*;
 
 public class AbstractInstantTemplates implements Templates {
     private final MethodMatcher equals = new MethodMatcher(JODA_ABSTRACT_INSTANT + " equals(java.lang.Object)");

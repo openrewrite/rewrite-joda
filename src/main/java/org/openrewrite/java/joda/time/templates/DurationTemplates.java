@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.migrate.joda.templates;
+package org.openrewrite.java.joda.time.templates;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,7 +24,7 @@ import org.openrewrite.java.tree.Expression;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.openrewrite.java.migrate.joda.templates.TimeClassNames.*;
+import static org.openrewrite.java.joda.time.templates.TimeClassNames.*;
 
 @NoArgsConstructor
 public class DurationTemplates implements Templates {

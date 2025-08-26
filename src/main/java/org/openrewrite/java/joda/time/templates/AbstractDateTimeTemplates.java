@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.migrate.joda.templates;
+package org.openrewrite.java.joda.time.templates;
 
 import lombok.Getter;
 import org.openrewrite.java.JavaTemplate;
@@ -22,8 +22,8 @@ import org.openrewrite.java.MethodMatcher;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.openrewrite.java.migrate.joda.templates.TimeClassNames.JAVA_DATE_TIME;
-import static org.openrewrite.java.migrate.joda.templates.TimeClassNames.JODA_ABSTRACT_DATE_TIME;
+import static org.openrewrite.java.joda.time.templates.TimeClassNames.JAVA_DATE_TIME;
+import static org.openrewrite.java.joda.time.templates.TimeClassNames.JODA_ABSTRACT_DATE_TIME;
 
 public class AbstractDateTimeTemplates implements Templates {
     private final MethodMatcher getDayOfMonth = new MethodMatcher(JODA_ABSTRACT_DATE_TIME + " getDayOfMonth()");

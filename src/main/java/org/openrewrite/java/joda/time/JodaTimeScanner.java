@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.migrate.joda;
+package org.openrewrite.java.joda.time;
 
 import fj.data.Option;
 import lombok.Getter;
@@ -35,7 +35,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
-import static org.openrewrite.java.migrate.joda.templates.TimeClassNames.JODA_CLASS_PATTERN;
+import static org.openrewrite.java.joda.time.templates.TimeClassNames.JODA_CLASS_PATTERN;
 
 class JodaTimeScanner extends ScopeAwareVisitor {
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.migrate.joda;
+package org.openrewrite.java.joda.time;
 
 import lombok.NonNull;
 import org.openrewrite.analysis.dataflow.DataFlowNode;
@@ -21,7 +21,7 @@ import org.openrewrite.analysis.dataflow.DataFlowSpec;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 
-import static org.openrewrite.java.migrate.joda.templates.TimeClassNames.JODA_CLASS_PATTERN;
+import static org.openrewrite.java.joda.time.templates.TimeClassNames.JODA_CLASS_PATTERN;
 
 class JodaTimeFlowSpec extends DataFlowSpec {
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.migrate.joda.templates;
+package org.openrewrite.java.joda.time.templates;
 
 import lombok.Getter;
 import org.openrewrite.java.JavaParser;
@@ -23,8 +23,8 @@ import org.openrewrite.java.MethodMatcher;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.openrewrite.java.migrate.joda.templates.TimeClassNames.JODA_BASE_INTERVAL;
-import static org.openrewrite.java.migrate.joda.templates.TimeClassNames.THREE_TEN_EXTRA_INTERVAL;
+import static org.openrewrite.java.joda.time.templates.TimeClassNames.JODA_BASE_INTERVAL;
+import static org.openrewrite.java.joda.time.templates.TimeClassNames.THREE_TEN_EXTRA_INTERVAL;
 
 public class BaseIntervalTemplates implements Templates {
     private final MethodMatcher getStartMillis = new MethodMatcher(JODA_BASE_INTERVAL + " getStartMillis()");

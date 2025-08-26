@@ -15,7 +15,7 @@
  */
 @NullMarked
 @NonNullFields
-package org.openrewrite.java.migrate.joda;
+package org.openrewrite.java.joda.time;
 
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.internal.lang.NonNullFields;

@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.migrate.joda;
+package org.openrewrite.java.joda.time;
 
 import lombok.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavadocVisitor;
-import org.openrewrite.java.migrate.joda.templates.AllTemplates;
-import org.openrewrite.java.migrate.joda.templates.MethodTemplate;
-import org.openrewrite.java.migrate.joda.templates.TimeClassMap;
-import org.openrewrite.java.migrate.joda.templates.VarTemplates;
+import org.openrewrite.java.joda.time.templates.AllTemplates;
+import org.openrewrite.java.joda.time.templates.MethodTemplate;
+import org.openrewrite.java.joda.time.templates.TimeClassMap;
+import org.openrewrite.java.joda.time.templates.VarTemplates;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.java.tree.J.VariableDeclarations.NamedVariable;
 
@@ -31,7 +31,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.openrewrite.java.migrate.joda.templates.TimeClassNames.*;
+import static org.openrewrite.java.joda.time.templates.TimeClassNames.*;
 
 class JodaTimeVisitor extends ScopeAwareVisitor {
 
