@@ -1,1 +1,1 @@
-rootProject.name = "rewrite-module-template"
+rootProject.name = "rewritejoda"

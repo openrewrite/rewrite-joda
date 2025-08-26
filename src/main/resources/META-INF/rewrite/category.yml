@@ -4,6 +4,6 @@
 
 ---
 type: specs.openrewrite.org/v1beta/category
-name: rewrite-module-template
-packageName: org.openrewrite.rewrite-module-template
-description: Recipes for rewrite-module-template.
+name: rewritejoda
+packageName: org.openrewrite.rewritejoda
+description: Recipes for rewritejoda.
