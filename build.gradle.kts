@@ -14,7 +14,9 @@ dependencies {
 
     implementation(platform("org.openrewrite:rewrite-bom:${rewriteVersion}"))
     implementation("org.openrewrite:rewrite-java")
+
     implementation("org.openrewrite.meta:rewrite-analysis:${rewriteVersion}")
+    implementation("org.openrewrite.recipe:rewrite-java-dependencies:${rewriteVersion}")
 
     annotationProcessor("org.openrewrite:rewrite-templating:${rewriteVersion}")
     implementation("org.openrewrite:rewrite-templating:${rewriteVersion}")
@@ -24,7 +26,11 @@ dependencies {
     }
 
     testImplementation("org.openrewrite:rewrite-test")
+    testImplementation("org.openrewrite:rewrite-maven")
+
     testRuntimeOnly("org.openrewrite:rewrite-java-21")
+    testRuntimeOnly("joda-time:joda-time:2.12.3")
+    testRuntimeOnly("org.threeten:threeten-extra:1.8.0")
 }
 
 tasks.withType<JavaCompile> {
