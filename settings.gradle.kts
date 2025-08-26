@@ -1,1 +1,1 @@
-rootProject.name = "rewritejoda"
+rootProject.name = "rewrite-joda"
