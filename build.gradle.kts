@@ -18,12 +18,12 @@ dependencies {
     implementation("org.openrewrite.meta:rewrite-analysis:${rewriteVersion}")
     implementation("org.openrewrite.recipe:rewrite-java-dependencies:${rewriteVersion}")
 
-    annotationProcessor("org.openrewrite:rewrite-templating:${rewriteVersion}")
-    implementation("org.openrewrite:rewrite-templating:${rewriteVersion}")
-    compileOnly("com.google.errorprone:error_prone_core:2.+") {
-        exclude("com.google.auto.service", "auto-service-annotations")
-        exclude("io.github.eisop","dataflow-errorprone")
-    }
+//    annotationProcessor("org.openrewrite:rewrite-templating:${rewriteVersion}")
+//    implementation("org.openrewrite:rewrite-templating:${rewriteVersion}")
+//    compileOnly("com.google.errorprone:error_prone_core:2.+") {
+//        exclude("com.google.auto.service", "auto-service-annotations")
+//        exclude("io.github.eisop","dataflow-errorprone")
+//    }
 
     testImplementation("org.openrewrite:rewrite-test")
     testImplementation("org.openrewrite:rewrite-maven")
