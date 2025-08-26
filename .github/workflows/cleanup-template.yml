@@ -28,10 +28,6 @@ jobs:
           SAFE_ACTOR=$(echo $ACTOR | sed 's/[^a-zA-Z0-9]//g' | tr '[:upper:]' '[:lower:]')
           GROUP="org.$SAFE_ACTOR.$SAFE_NAME"
 
-          # Adjust the owner in the workflow files
-          find .github/workflows -type f -name "*.yml" -exec sed -i {} \
-            -e "s/moderneinc/$GITHUB_ACTOR/g" \;
-
           # Adjust the name anywhere in the project files
           find . -type f -name "*" -exec sed -i {} \
             -e "s/rewrite-module-template/${SAFE_NAME}/g" \;
