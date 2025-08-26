@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "org.openrewrite.recipe"
-description = "A template repository for creating new OpenRewrite modules"
+description = "Recipes for Joda-Time."
 
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
 dependencies {
