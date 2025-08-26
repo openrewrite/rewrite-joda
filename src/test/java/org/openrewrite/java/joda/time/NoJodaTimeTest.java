@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.migrate.joda;
+package org.openrewrite.java.joda.time;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
@@ -29,7 +29,7 @@ class NoJodaTimeTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-          .recipeFromResource("/META-INF/rewrite/no-joda-time.yml", "org.openrewrite.java.migrate.joda.NoJodaTime")
+          .recipeFromResource("/META-INF/rewrite/no-joda-time.yml", "org.openrewrite.java.joda.time.NoJodaTime")
           .parser(JavaParser.fromJavaVersion().classpath("joda-time", "threeten-extra"));
     }
 
