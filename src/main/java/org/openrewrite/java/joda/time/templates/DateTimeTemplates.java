@@ -47,6 +47,7 @@ public class DateTimeTemplates implements Templates {
 
     private final MethodMatcher toDateTime = new MethodMatcher(JODA_DATE_TIME + " toDateTime()");
     private final MethodMatcher toDateTimeWithZone = new MethodMatcher(JODA_DATE_TIME + " toDateTime(" + JODA_DATE_TIME_ZONE + ")");
+    private final MethodMatcher toDateMidnight = new MethodMatcher(JODA_DATE_TIME + " toDateMidnight()");
     private final MethodMatcher withMillis = new MethodMatcher(JODA_DATE_TIME + " withMillis(long)");
     private final MethodMatcher withZone = new MethodMatcher(JODA_DATE_TIME + " withZone(" + JODA_DATE_TIME_ZONE + ")");
     private final MethodMatcher withZoneRetainFields = new MethodMatcher(JODA_DATE_TIME + " withZoneRetainFields(" + JODA_DATE_TIME_ZONE + ")");
@@ -80,7 +81,6 @@ public class DateTimeTemplates implements Templates {
     private final MethodMatcher minusMinutes = new MethodMatcher(JODA_DATE_TIME + " minusMinutes(int)");
     private final MethodMatcher minusSeconds = new MethodMatcher(JODA_DATE_TIME + " minusSeconds(int)");
     private final MethodMatcher minusMillis = new MethodMatcher(JODA_DATE_TIME + " minusMillis(int)");
-    private final MethodMatcher toDateMidnight = new MethodMatcher(JODA_DATE_TIME + " toDateMidnight()");
     private final MethodMatcher toYearMonthDay = new MethodMatcher(JODA_DATE_TIME + " toYearMonthDay()");
     private final MethodMatcher toTimeOfDay = new MethodMatcher(JODA_DATE_TIME + " toTimeOfDay()");
     private final MethodMatcher toLocalDateTime = new MethodMatcher(JODA_DATE_TIME + " toLocalDateTime()");
@@ -160,6 +160,10 @@ public class DateTimeTemplates implements Templates {
             .build();
     private final JavaTemplate toDateTimeTemplate = JavaTemplate.builder("#{any(java.time.ZonedDateTime)}")
             .build();
+    private final JavaTemplate atStartOfDayTemplate = JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.toLocalDate().atStartOfDay(ZoneId.systemDefault())")
+            .imports(JAVA_ZONE_ID)
+            .build();
+
     private final JavaTemplate getMillisTemplate = JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.toInstant().toEpochMilli()")
             .build();
     private final JavaTemplate withMillisTemplate = JavaTemplate.builder("ZonedDateTime.ofInstant(Instant.ofEpochMilli(#{any(long)}),#{any(java.time.ZonedDateTime)}.getZone())")
@@ -289,6 +293,7 @@ public class DateTimeTemplates implements Templates {
             add(new MethodTemplate(dateTimeParseWithFormatter, dateTimeParseWithFormatterTemplate));
             add(new MethodTemplate(toDateTime, toDateTimeTemplate));
             add(new MethodTemplate(toDateTimeWithZone, withZoneTemplate));
+            add(new MethodTemplate(toDateMidnight, atStartOfDayTemplate));
             add(new MethodTemplate(withMillis, withMillisTemplate, m -> {
                 J.MethodInvocation mi = (J.MethodInvocation) m;
                 return new Expression[]{mi.getArguments().get(0), mi.getSelect()};

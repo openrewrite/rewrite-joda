@@ -20,7 +20,6 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.MethodCall;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,7 +70,7 @@ public class AbstractInstantTemplates implements Templates {
     private final JavaTemplate toStringFormatterTemplate = JavaTemplate.builder("#{any(" + JAVA_DATE_TIME + ")}.format(#{any(" + JAVA_TIME_FORMATTER + ")})").build();
 
     @Getter
-    private final List<MethodTemplate> templates = new ArrayList<MethodTemplate>() {
+    private final List<MethodTemplate> templates = new ArrayList<>() {
         {
             add(new MethodTemplate(equals, equalsTemplate));
             add(new MethodTemplate(getZone, getZoneTemplate));
@@ -94,7 +93,7 @@ public class AbstractInstantTemplates implements Templates {
     };
 
     @Override
-    public boolean matchesMethodCall(MethodCall method, MethodTemplate template) {
+    public boolean matchesMethodCall(Expression method, MethodTemplate template) {
         if (method instanceof J.NewClass) {
             return true;
         }

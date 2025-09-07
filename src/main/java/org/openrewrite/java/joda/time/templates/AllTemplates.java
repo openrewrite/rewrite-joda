@@ -15,75 +15,62 @@
  */
 package org.openrewrite.java.joda.time.templates;
 
-import lombok.Value;
-import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.JavaFieldTemplate;
+import org.openrewrite.java.tree.Expression;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.MethodCall;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.openrewrite.java.joda.time.templates.TimeClassNames.*;
 
 public class AllTemplates {
-    private static final MethodMatcher ANY_BASE_DATETIME = new MethodMatcher(JODA_BASE_DATE_TIME + " *(..)");
-    private static final MethodMatcher ANY_NEW_DATE_TIME = new MethodMatcher(JODA_DATE_TIME + "<constructor>(..)");
-    private static final MethodMatcher ANY_DATE_TIME = new MethodMatcher(JODA_DATE_TIME + " *(..)");
-    private static final MethodMatcher ANY_DATE_TIMEZONE = new MethodMatcher(JODA_DATE_TIME_ZONE + " *(..)");
-    private static final MethodMatcher ANY_TIME_FORMAT = new MethodMatcher(JODA_TIME_FORMAT + " *(..)");
-    private static final MethodMatcher ANY_TIME_FORMATTER = new MethodMatcher(JODA_TIME_FORMATTER + " *(..)");
-    private static final MethodMatcher ANY_NEW_DURATION = new MethodMatcher(JODA_DURATION + "<constructor>(..)");
-    private static final MethodMatcher ANY_DURATION = new MethodMatcher(JODA_DURATION + " *(..)");
-    private static final MethodMatcher ANY_BASE_DURATION = new MethodMatcher(JODA_BASE_DURATION + " *(..)");
-    private static final MethodMatcher ANY_ABSTRACT_INSTANT = new MethodMatcher(JODA_ABSTRACT_INSTANT + " *(..)");
-    private static final MethodMatcher ANY_ABSTRACT_DATE_TIME = new MethodMatcher(JODA_ABSTRACT_DATE_TIME + " *(..)");
-    private static final MethodMatcher ANY_ABSTRACT_DURATION = new MethodMatcher(JODA_ABSTRACT_DURATION + " *(..)");
-    private static final MethodMatcher ANY_INSTANT = new MethodMatcher(JODA_INSTANT + " *(..)");
-    private static final MethodMatcher ANY_NEW_INSTANT = new MethodMatcher(JODA_INSTANT + "<constructor>(..)");
-    private static final MethodMatcher ANY_NEW_INTERVAL = new MethodMatcher(JODA_INTERVAL + "<constructor>(..)");
-    private static final MethodMatcher ANY_ABSTRACT_INTERVAL = new MethodMatcher(JODA_ABSTRACT_INTERVAL + " *(..)");
-    private static final MethodMatcher ANY_BASE_INTERVAL = new MethodMatcher(JODA_BASE_INTERVAL + " *(..)");
-
-    private static List<MatcherAndTemplates> templates = new ArrayList<MatcherAndTemplates>() {
+    private static final Map<String, Templates> templates = new HashMap<>() {
         {
-            add(new MatcherAndTemplates(ANY_ABSTRACT_DATE_TIME, new AbstractDateTimeTemplates()));
-            add(new MatcherAndTemplates(ANY_ABSTRACT_DURATION, new AbstractDurationTemplates()));
-            add(new MatcherAndTemplates(ANY_ABSTRACT_INSTANT, new AbstractInstantTemplates()));
-            add(new MatcherAndTemplates(ANY_BASE_DATETIME, new BaseDateTime()));
-            add(new MatcherAndTemplates(ANY_TIME_FORMAT, new DateTimeFormatTemplates()));
-            add(new MatcherAndTemplates(ANY_TIME_FORMATTER, new DateTimeFormatterTemplates()));
-            add(new MatcherAndTemplates(ANY_NEW_DATE_TIME, new DateTimeTemplates()));
-            add(new MatcherAndTemplates(ANY_DATE_TIME, new DateTimeTemplates()));
-            add(new MatcherAndTemplates(ANY_NEW_DURATION, new DurationTemplates()));
-            add(new MatcherAndTemplates(ANY_DURATION, new DurationTemplates()));
-            add(new MatcherAndTemplates(ANY_BASE_DURATION, new BaseDurationTemplates()));
-            add(new MatcherAndTemplates(ANY_DATE_TIMEZONE, new TimeZoneTemplates()));
-            add(new MatcherAndTemplates(ANY_INSTANT, new InstantTemplates()));
-            add(new MatcherAndTemplates(ANY_NEW_INSTANT, new InstantTemplates()));
-            add(new MatcherAndTemplates(ANY_NEW_INTERVAL, new IntervalTemplates()));
-            add(new MatcherAndTemplates(ANY_ABSTRACT_INTERVAL, new AbstractIntervalTemplates()));
-            add(new MatcherAndTemplates(ANY_BASE_INTERVAL, new BaseIntervalTemplates()));
+            put(JODA_ABSTRACT_DATE_TIME, new AbstractDateTimeTemplates());
+            put(JODA_ABSTRACT_DURATION, new AbstractDurationTemplates());
+            put(JODA_ABSTRACT_INSTANT, new AbstractInstantTemplates());
+            put(JODA_BASE_DATE_TIME, new BaseDateTime());
+            put(JODA_TIME_FORMAT, new DateTimeFormatTemplates());
+            put(JODA_TIME_FORMATTER, new DateTimeFormatterTemplates());
+            put(JODA_DATE_TIME, new DateTimeTemplates());
+            put(JODA_DURATION, new DurationTemplates());
+            put(JODA_BASE_DURATION, new BaseDurationTemplates());
+            put(JODA_DATE_TIME_ZONE, new DateTimeZoneTemplates());
+            put(JODA_INSTANT, new InstantTemplates());
+            put(JODA_INTERVAL, new IntervalTemplates());
+            put(JODA_ABSTRACT_INTERVAL, new AbstractIntervalTemplates());
+            put(JODA_BASE_INTERVAL, new BaseIntervalTemplates());
         }
     };
 
+    public static JavaFieldTemplate getFieldTemplate(J.FieldAccess filed) {
+        return getTemplateGroup(filed)
+                .flatMap(t -> t.getFields().stream()
+                        .filter(f -> f.getMatcher().match(filed))
+                        .findFirst())
+                .map(FieldTemplate::getTemplate)
+                .orElse(null);
+    }
+
     public static MethodTemplate getTemplate(MethodCall method) {
-        return getTemplateGroup(method).flatMap(templates -> templates.getTemplates().stream()
-                .filter(template -> template.getMatcher().matches(method) && templates.matchesMethodCall(method, template))
-                .findFirst()).orElse(null);
+        return getTemplateGroup(method)
+                .flatMap(templates -> templates.getTemplates().stream()
+                        .filter(template -> template.getMatcher().matches(method) && templates.matchesMethodCall(method, template))
+                        .findFirst())
+                .orElse(null);
     }
 
-    private static Optional<Templates> getTemplateGroup(MethodCall method) {
-        for (MatcherAndTemplates matcherAndTemplates : templates) {
-            if (matcherAndTemplates.getMatcher().matches(method)) {
-                return Optional.of(matcherAndTemplates.getTemplates());
-            }
-        }
-        return Optional.empty();
-    }
+    private static Optional<Templates> getTemplateGroup(Expression expression) {
+        JavaType.Class type;
+        if(expression instanceof J.MethodInvocation)
+            type = (JavaType.Class)((J.MethodInvocation) expression).getMethodType().getDeclaringType();
+        else
+            type = (JavaType.Class) expression.getType();
 
-    @Value
-    private static class MatcherAndTemplates {
-        MethodMatcher matcher;
-        Templates templates;
+        return Optional.ofNullable(templates.get(type.getFullyQualifiedName()));
     }
 }
