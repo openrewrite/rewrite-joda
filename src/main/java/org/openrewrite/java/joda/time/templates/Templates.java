@@ -15,18 +15,24 @@
  */
 package org.openrewrite.java.joda.time.templates;
 
-import org.openrewrite.java.tree.MethodCall;
+import org.openrewrite.java.tree.Expression;
 
+import java.util.Collections;
 import java.util.List;
 
 public interface Templates {
     List<MethodTemplate> getTemplates();
 
+    default List<FieldTemplate> getFields(){
+        return Collections.emptyList();
+    }
+
     /**
      * This method is used to disambiguate between multiple potential template matches for a given methodCall.
      * This should be overridden by Templates classes where methodMatcher.matches() may return more than one template.
      **/
-    default boolean matchesMethodCall(MethodCall method, MethodTemplate template) {
+    default boolean matchesMethodCall(Expression method, MethodTemplate template) {
         return true;
     }
+
 }

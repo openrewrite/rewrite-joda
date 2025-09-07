@@ -27,26 +27,27 @@ public class TimeClassMap {
 
     private static final JavaType.Class object = JavaType.ShallowClass.build("java.lang.Object");
 
-    private final Map<String, JavaType.Class> jodaToJavaTimeMap = new HashMap<String, JavaType.Class>() {
+    private final Map<String, JavaType.Class> jodaToJavaTimeMap = new HashMap<>() {
         {
-            put(JODA_DATE_TIME, javaTypeClass(JAVA_DATE_TIME, object));
-            put(JODA_BASE_DATE_TIME, javaTypeClass(JAVA_DATE_TIME, object));
-            put(JODA_DATE_TIME_ZONE, javaTypeClass(JAVA_ZONE_ID, object));
-            put(JODA_TIME_FORMATTER, javaTypeClass(JAVA_TIME_FORMATTER, object));
-            put(JODA_DURATION, javaTypeClass(JAVA_DURATION, object));
-            put(JODA_READABLE_DURATION, javaTypeClass(JAVA_DURATION, object));
-            put(JODA_INTERVAL, javaTypeClass(THREE_TEN_EXTRA_INTERVAL, object));
+            put(JODA_DATE_TIME, javaTypeClass(JAVA_DATE_TIME));
+            put(JODA_BASE_DATE_TIME, javaTypeClass(JAVA_DATE_TIME));
+            put(JODA_DATE_TIME_ZONE, javaTypeClass(JAVA_ZONE_ID));
+            put(JODA_TIME_FORMATTER, javaTypeClass(JAVA_TIME_FORMATTER));
+            put(JODA_DURATION, javaTypeClass(JAVA_DURATION));
+            put(JODA_READABLE_DURATION, javaTypeClass(JAVA_DURATION));
+            put(JODA_INTERVAL, javaTypeClass(THREE_TEN_EXTRA_INTERVAL));
         }
     };
 
-    private final Map<String, String> jodaToJavaTimeShortName = new HashMap<String, String>() {
+    private final Map<String, String> jodaToJavaTimeShortName = new HashMap<>() {
         {
             put(JODA_DATE_TIME, "ZonedDateTime");
+            put(JODA_DATE_TIME_ZONE, "ZoneId");
         }
     };
 
-    private static JavaType.Class javaTypeClass(String fqn, JavaType.Class superType) {
-        return new JavaType.Class(null, 0, fqn, JavaType.FullyQualified.Kind.Class, null, superType,
+    private static JavaType.Class javaTypeClass(String fqn) {
+        return new JavaType.Class(null, 0, fqn, JavaType.FullyQualified.Kind.Class, null, TimeClassMap.object,
                 null, null, null, null, null);
     }
 

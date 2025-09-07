@@ -16,6 +16,8 @@
 package org.openrewrite.java.joda.time.templates;
 
 import lombok.Getter;
+import org.openrewrite.java.FieldMatcher;
+import org.openrewrite.java.JavaFieldTemplate;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 
@@ -24,11 +26,12 @@ import java.util.List;
 
 import static org.openrewrite.java.joda.time.templates.TimeClassNames.*;
 
-public class TimeZoneTemplates implements Templates {
+public class DateTimeZoneTemplates implements Templates {
     private final MethodMatcher zoneForID = new MethodMatcher(JODA_DATE_TIME_ZONE + " forID(String)");
     private final MethodMatcher zoneForOffsetHours = new MethodMatcher(JODA_DATE_TIME_ZONE + " forOffsetHours(int)");
     private final MethodMatcher zoneForOffsetHoursMinutes = new MethodMatcher(JODA_DATE_TIME_ZONE + " forOffsetHoursMinutes(int, int)");
     private final MethodMatcher zoneForTimeZone = new MethodMatcher(JODA_DATE_TIME_ZONE + " forTimeZone(java.util.TimeZone)");
+    private final FieldMatcher UTCStatic = new FieldMatcher(JODA_DATE_TIME_ZONE,"UTC");
 
     private final JavaTemplate zoneIdOfTemplate = JavaTemplate.builder("ZoneId.of(#{any(String)})")
             .imports(JAVA_ZONE_ID)
@@ -41,9 +44,10 @@ public class TimeZoneTemplates implements Templates {
             .build();
     private final JavaTemplate timeZoneToZoneIdTemplate = JavaTemplate.builder("#{any(java.util.TimeZone)}.toZoneId()")
             .build();
+    private final JavaFieldTemplate UTCStaticTemplate = new JavaFieldTemplate(JAVA_ZONE_OFFSET,"UTC");
 
     @Getter
-    private final List<MethodTemplate> templates = new ArrayList<MethodTemplate>() {
+    private final List<MethodTemplate> templates = new ArrayList<>() {
         {
             add(new MethodTemplate(zoneForID, zoneIdOfTemplate));
             add(new MethodTemplate(zoneForOffsetHours, zoneOffsetHoursTemplate));
@@ -51,4 +55,13 @@ public class TimeZoneTemplates implements Templates {
             add(new MethodTemplate(zoneForTimeZone, timeZoneToZoneIdTemplate));
         }
     };
+
+    @Override
+    public List<FieldTemplate> getFields() {
+        List<FieldTemplate> fieldsMapping = new ArrayList<>();
+
+        fieldsMapping.add(new FieldTemplate(UTCStatic, UTCStaticTemplate));
+
+        return fieldsMapping;
+    }
 }

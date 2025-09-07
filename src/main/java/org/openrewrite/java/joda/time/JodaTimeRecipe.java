@@ -15,22 +15,13 @@
  */
 package org.openrewrite.java.joda.time;
 
-import lombok.Getter;
-import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
-import org.openrewrite.ScanningRecipe;
+import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.search.UsesType;
-import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.J.VariableDeclarations.NamedVariable;
-import org.openrewrite.java.tree.JavaType;
 
-import java.util.*;
-
-import static java.util.Collections.emptyList;
-
-public class JodaTimeRecipe extends ScanningRecipe<JodaTimeRecipe.Accumulator> {
+public class JodaTimeRecipe extends Recipe {
     @Override
     public String getDisplayName() {
         return "Migrate Joda-Time to Java time";
@@ -42,48 +33,7 @@ public class JodaTimeRecipe extends ScanningRecipe<JodaTimeRecipe.Accumulator> {
     }
 
     @Override
-    public Accumulator getInitialValue(ExecutionContext ctx) {
-        return new Accumulator();
-    }
-
-    @Override
-    public TreeVisitor<?, ExecutionContext> getScanner(Accumulator acc) {
-        return new JodaTimeScanner(acc);
-    }
-
-    @Override
-    public TreeVisitor<?, ExecutionContext> getVisitor(Accumulator acc) {
-        JodaTimeVisitor jodaTimeVisitor = new JodaTimeVisitor(acc, true, new LinkedList<>());
-        return Preconditions.check(new UsesType<>("org.joda.time.*", true), jodaTimeVisitor);
-    }
-
-    @Getter
-    public static class Accumulator {
-        private final Set<NamedVariable> unsafeVars = new HashSet<>();
-        private final Map<JavaType.Method, Boolean> safeMethodMap = new HashMap<>();
-        private final VarTable varTable = new VarTable();
-    }
-
-    static class VarTable {
-        private final Map<JavaType, List<NamedVariable>> vars = new HashMap<>();
-
-        public void addVars(J.MethodDeclaration methodDeclaration) {
-            JavaType type = methodDeclaration.getMethodType();
-            assert type != null;
-            methodDeclaration.getParameters().forEach(p -> {
-                if (!(p instanceof J.VariableDeclarations)) {
-                    return;
-                }
-                J.VariableDeclarations.NamedVariable namedVariable = ((J.VariableDeclarations) p).getVariables().get(0);
-                vars.computeIfAbsent(type, k -> new ArrayList<>()).add(namedVariable);
-            });
-        }
-
-        public @Nullable NamedVariable getVarByName(@Nullable JavaType declaringType, String varName) {
-            return vars.getOrDefault(declaringType, emptyList()).stream()
-                    .filter(v -> v.getSimpleName().equals(varName))
-                    .findFirst() // there should be only one variable with the same name
-                    .orElse(null);
-        }
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
+        return Preconditions.check(new UsesType<>("org.joda.time.*", true), new JodaTimeVisitor());
     }
 }
