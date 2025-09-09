@@ -27,7 +27,11 @@ import org.openrewrite.analysis.dataflow.Dataflow;
 import org.openrewrite.analysis.dataflow.analysis.SinkFlowSummary;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavadocVisitor;
-import org.openrewrite.java.tree.*;
+import org.openrewrite.java.tree.Expression;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.Javadoc;
+import org.openrewrite.java.tree.MethodCall;
 import org.openrewrite.java.tree.J.VariableDeclarations.NamedVariable;
 
 import java.util.*;
