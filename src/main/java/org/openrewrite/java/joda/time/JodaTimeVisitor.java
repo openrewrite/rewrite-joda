@@ -42,7 +42,7 @@ class JodaTimeVisitor extends JavaVisitor<ExecutionContext> {
 
     @Override
     protected JavadocVisitor<ExecutionContext> getJavadocVisitor() {
-        return new JavadocVisitor<>(this) {
+        return new JavadocVisitor<ExecutionContext>(this) {
             /**
              * Do not visit the method referenced from the Javadoc, may cause recipe to fail.
              */
@@ -214,7 +214,8 @@ class JodaTimeVisitor extends JavaVisitor<ExecutionContext> {
 
         JavaFieldTemplate fieldTemplate = AllTemplates.getFieldTemplate(f);
         if(fieldTemplate != null) {
-            javaTimeShortName = Arrays.stream(fieldTemplate.getType().split("\\.")).toList().getLast();
+            String[] split = fieldTemplate.getType().split("\\.");
+            javaTimeShortName = split[split.length - 1];
             javaTimeType = new JavaType.Class(null, 0, fieldTemplate.getType(), JavaType.FullyQualified.Kind.Class, null, JavaType.ShallowClass.build("java.lang.Object"),
                     null, null, null, null, null);
             fieldName = fieldName.withSimpleName(fieldTemplate.getName());

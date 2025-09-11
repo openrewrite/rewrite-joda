@@ -7,12 +7,6 @@ plugins {
 group = "org.openrewrite.recipe"
 description = "Recipes for Joda-Time."
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
-    }
-}
-
 val rewriteVersion = rewriteRecipe.rewriteVersion.get()
 dependencies {
     annotationProcessor("org.projectlombok:lombok:latest.release")
@@ -45,5 +39,4 @@ tasks.withType<Test> {
 
 tasks.withType<JavaCompile> {
     options.compilerArgs.add("-Arewrite.javaParserClasspathFrom=resources")
-    options.release.set(21)
 }

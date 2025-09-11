@@ -70,7 +70,7 @@ public class AbstractInstantTemplates implements Templates {
     private final JavaTemplate toStringFormatterTemplate = JavaTemplate.builder("#{any(" + JAVA_DATE_TIME + ")}.format(#{any(" + JAVA_TIME_FORMATTER + ")})").build();
 
     @Getter
-    private final List<MethodTemplate> templates = new ArrayList<>() {
+    private final List<MethodTemplate> templates = new ArrayList<MethodTemplate>() {
         {
             add(new MethodTemplate(equals, equalsTemplate));
             add(new MethodTemplate(getZone, getZoneTemplate));

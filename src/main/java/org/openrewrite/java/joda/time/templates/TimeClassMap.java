@@ -27,7 +27,7 @@ public class TimeClassMap {
 
     private static final JavaType.Class object = JavaType.ShallowClass.build("java.lang.Object");
 
-    private final Map<String, JavaType.Class> jodaToJavaTimeMap = new HashMap<>() {
+    private final Map<String, JavaType.Class> jodaToJavaTimeMap = new HashMap<String, JavaType.Class>() {
         {
             put(JODA_DATE_TIME, javaTypeClass(JAVA_DATE_TIME));
             put(JODA_BASE_DATE_TIME, javaTypeClass(JAVA_DATE_TIME));
@@ -39,7 +39,7 @@ public class TimeClassMap {
         }
     };
 
-    private final Map<String, String> jodaToJavaTimeShortName = new HashMap<>() {
+    private final Map<String, String> jodaToJavaTimeShortName = new HashMap<String, String>() {
         {
             put(JODA_DATE_TIME, "ZonedDateTime");
             put(JODA_DATE_TIME_ZONE, "ZoneId");

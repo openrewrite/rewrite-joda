@@ -47,7 +47,7 @@ public class DateTimeZoneTemplates implements Templates {
     private final JavaFieldTemplate UTCStaticTemplate = new JavaFieldTemplate(JAVA_ZONE_OFFSET,"UTC");
 
     @Getter
-    private final List<MethodTemplate> templates = new ArrayList<>() {
+    private final List<MethodTemplate> templates = new ArrayList<MethodTemplate>() {
         {
             add(new MethodTemplate(zoneForID, zoneIdOfTemplate));
             add(new MethodTemplate(zoneForOffsetHours, zoneOffsetHoursTemplate));
