@@ -18,13 +18,9 @@ package org.openrewrite.java.joda.time.templates;
 import lombok.Getter;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.tree.Expression;
-import org.openrewrite.java.tree.J;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import static org.openrewrite.java.joda.time.templates.TimeClassNames.*;
 
@@ -74,14 +70,14 @@ public class AbstractInstantTemplates implements Templates {
         {
             add(new MethodTemplate(equals, equalsTemplate));
             add(new MethodTemplate(getZone, getZoneTemplate));
-            add(new MethodTemplate(isAfterLong, isAfterLongTemplate));
-            add(new MethodTemplate(isAfterLong, isAfterLongTemplateWithInstant));
-            add(new MethodTemplate(isAfter, isAfterTemplate));
-            add(new MethodTemplate(isAfter, isAfterTemplateWithInstant));
-            add(new MethodTemplate(isBeforeLong, isBeforeLongTemplate));
-            add(new MethodTemplate(isBeforeLong, isBeforeLongTemplateWithInstant));
-            add(new MethodTemplate(isBefore, isBeforTemplate));
-            add(new MethodTemplate(isBefore, isBeforeTemplateWithInstant));
+            add(new MethodTemplate(JODA_DATE_TIME, isAfterLong, isAfterLongTemplate));
+            add(new MethodTemplate(JODA_INSTANT, isAfterLong, isAfterLongTemplateWithInstant));
+            add(new MethodTemplate(JODA_DATE_TIME, isAfter, isAfterTemplate));
+            add(new MethodTemplate(JODA_INSTANT, isAfter, isAfterTemplateWithInstant));
+            add(new MethodTemplate(JODA_DATE_TIME, isBeforeLong, isBeforeLongTemplate));
+            add(new MethodTemplate(JODA_INSTANT, isBeforeLong, isBeforeLongTemplateWithInstant));
+            add(new MethodTemplate(JODA_DATE_TIME, isBefore, isBeforTemplate));
+            add(new MethodTemplate(JODA_INSTANT, isBefore, isBeforeTemplateWithInstant));
             add(new MethodTemplate(isBeforeNow, isBeforeNowTemplate));
             add(new MethodTemplate(isEqualLong, isEqualLongTemplate));
             add(new MethodTemplate(isEqualReadableInstant, isEqualReadableInstantTemplate));
@@ -91,21 +87,4 @@ public class AbstractInstantTemplates implements Templates {
             add(new MethodTemplate(toStringFormatter, toStringFormatterTemplate));
         }
     };
-
-    @Override
-    public boolean matchesMethodCall(Expression method, MethodTemplate template) {
-        if (method instanceof J.NewClass) {
-            return true;
-        }
-        Expression select = ((J.MethodInvocation) method).getSelect();
-        if (select != null && select.getType() != null && select.getType().isAssignableFrom(Pattern.compile(JODA_INSTANT))) {
-            return Arrays.asList(
-                    isAfterLongTemplateWithInstant,
-                    isAfterTemplateWithInstant,
-                    isBeforeLongTemplateWithInstant,
-                    isBeforeTemplateWithInstant
-            ).contains(template.getTemplate());
-        }
-        return true;
-    }
 }

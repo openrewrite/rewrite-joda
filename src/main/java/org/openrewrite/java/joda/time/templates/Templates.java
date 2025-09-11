@@ -16,6 +16,7 @@
 package org.openrewrite.java.joda.time.templates;
 
 import org.openrewrite.java.tree.Expression;
+import org.openrewrite.java.tree.J;
 
 import java.util.Collections;
 import java.util.List;
@@ -32,6 +33,15 @@ public interface Templates {
      * This should be overridden by Templates classes where methodMatcher.matches() may return more than one template.
      **/
     default boolean matchesMethodCall(Expression method, MethodTemplate template) {
+        if (method instanceof J.NewClass) {
+            return true;
+        }
+
+        Expression select = ((J.MethodInvocation) method).getSelect();
+        if (select != null && select.getType() != null) {
+            return select.getType().isAssignableFrom(template.getParentTypePattern());
+        }
+
         return true;
     }
 
