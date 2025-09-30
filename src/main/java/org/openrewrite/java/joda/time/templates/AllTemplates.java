@@ -27,20 +27,20 @@ import static org.openrewrite.java.joda.time.templates.TimeClassNames.*;
 
 public class AllTemplates {
     private static final MethodMatcher ANY_BASE_DATETIME = new MethodMatcher(JODA_BASE_DATE_TIME + " *(..)");
-    private static final MethodMatcher ANY_NEW_DATE_TIME = new MethodMatcher(JODA_DATE_TIME + "<constructor>(..)");
+    private static final MethodMatcher ANY_NEW_DATE_TIME = new MethodMatcher(JODA_DATE_TIME + " <constructor>(..)");
     private static final MethodMatcher ANY_DATE_TIME = new MethodMatcher(JODA_DATE_TIME + " *(..)");
     private static final MethodMatcher ANY_DATE_TIMEZONE = new MethodMatcher(JODA_DATE_TIME_ZONE + " *(..)");
     private static final MethodMatcher ANY_TIME_FORMAT = new MethodMatcher(JODA_TIME_FORMAT + " *(..)");
     private static final MethodMatcher ANY_TIME_FORMATTER = new MethodMatcher(JODA_TIME_FORMATTER + " *(..)");
-    private static final MethodMatcher ANY_NEW_DURATION = new MethodMatcher(JODA_DURATION + "<constructor>(..)");
+    private static final MethodMatcher ANY_NEW_DURATION = new MethodMatcher(JODA_DURATION + " <constructor>(..)");
     private static final MethodMatcher ANY_DURATION = new MethodMatcher(JODA_DURATION + " *(..)");
     private static final MethodMatcher ANY_BASE_DURATION = new MethodMatcher(JODA_BASE_DURATION + " *(..)");
     private static final MethodMatcher ANY_ABSTRACT_INSTANT = new MethodMatcher(JODA_ABSTRACT_INSTANT + " *(..)");
     private static final MethodMatcher ANY_ABSTRACT_DATE_TIME = new MethodMatcher(JODA_ABSTRACT_DATE_TIME + " *(..)");
     private static final MethodMatcher ANY_ABSTRACT_DURATION = new MethodMatcher(JODA_ABSTRACT_DURATION + " *(..)");
     private static final MethodMatcher ANY_INSTANT = new MethodMatcher(JODA_INSTANT + " *(..)");
-    private static final MethodMatcher ANY_NEW_INSTANT = new MethodMatcher(JODA_INSTANT + "<constructor>(..)");
-    private static final MethodMatcher ANY_NEW_INTERVAL = new MethodMatcher(JODA_INTERVAL + "<constructor>(..)");
+    private static final MethodMatcher ANY_NEW_INSTANT = new MethodMatcher(JODA_INSTANT + " <constructor>(..)");
+    private static final MethodMatcher ANY_NEW_INTERVAL = new MethodMatcher(JODA_INTERVAL + " <constructor>(..)");
     private static final MethodMatcher ANY_ABSTRACT_INTERVAL = new MethodMatcher(JODA_ABSTRACT_INTERVAL + " *(..)");
     private static final MethodMatcher ANY_BASE_INTERVAL = new MethodMatcher(JODA_BASE_INTERVAL + " *(..)");
 

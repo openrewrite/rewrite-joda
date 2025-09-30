@@ -35,8 +35,8 @@ public class DurationTemplates implements Templates {
     private final MethodMatcher standardSeconds = new MethodMatcher(JODA_DURATION + " standardSeconds(long)");
     private final MethodMatcher millis = new MethodMatcher(JODA_DURATION + " millis(long)");
 
-    private final MethodMatcher newDuration = new MethodMatcher(JODA_DURATION + "<constructor>(long)");
-    private final MethodMatcher newDurationWithInstants = new MethodMatcher(JODA_DURATION + "<constructor>(long,long)");
+    private final MethodMatcher newDuration = new MethodMatcher(JODA_DURATION + " <constructor>(long)");
+    private final MethodMatcher newDurationWithInstants = new MethodMatcher(JODA_DURATION + " <constructor>(long,long)");
 
     private final MethodMatcher getStandardDays = new MethodMatcher(JODA_DURATION + " getStandardDays()");
     private final MethodMatcher getStandardHours = new MethodMatcher(JODA_DURATION + " getStandardHours()");
