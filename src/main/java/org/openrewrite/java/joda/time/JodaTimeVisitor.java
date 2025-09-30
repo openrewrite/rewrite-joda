@@ -276,8 +276,8 @@ class JodaTimeVisitor extends JavaVisitor<ExecutionContext> {
             System.out.println("Joda usage is found but mapping is missing: " + original);
             return original; // unhandled case
         }
-        if (template.getTemplate().getCode().equals(JODA_MULTIPLE_MAPPING_POSSIBLE)) {
-            System.out.println(JODA_MULTIPLE_MAPPING_POSSIBLE + ": " + original);
+        if (JODA_MULTIPLE_MAPPING_POSSIBLE.equals(template.getTemplate().getCode())) {
+        if (JODA_NO_AUTOMATIC_MAPPING_POSSIBLE.equals(template.getTemplate().getCode())) {
             return original; // usage with no automated mapping
         }
         if (template.getTemplate().getCode().equals(JODA_NO_AUTOMATIC_MAPPING_POSSIBLE)) {
