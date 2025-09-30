@@ -23,33 +23,29 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.MethodCall;
 
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 @Value
 public class MethodTemplate {
+    Pattern parentTypePattern;
     MethodMatcher matcher;
     JavaTemplate template;
     Function<MethodCall, Expression[]> templateArgsFunc;
 
+    public MethodTemplate(String parentType, MethodMatcher matcher, JavaTemplate template) {
+        this(Pattern.compile(parentType), matcher, template, MethodTemplate::apply);
+    }
+
     public MethodTemplate(MethodMatcher matcher, JavaTemplate template) {
-        this(matcher, template, m -> {
-            Expression select = isInstanceCall(m) ? ((J.MethodInvocation) m).getSelect() : null;
-
-            if (m.getArguments().isEmpty() || m.getArguments().get(0) instanceof J.Empty) {
-                return select != null ? new Expression[]{select} : new Expression[0];
-            }
-
-            Expression[] args = m.getArguments().toArray(new Expression[0]);
-            if (select != null) {
-                Expression[] newArgs = new Expression[args.length + 1];
-                newArgs[0] = select;
-                System.arraycopy(args, 0, newArgs, 1, args.length);
-                return newArgs;
-            }
-            return args;
-        });
+        this(Pattern.compile(".*"), matcher, template, MethodTemplate::apply);
     }
 
     public MethodTemplate(MethodMatcher matcher, JavaTemplate template, Function<MethodCall, Expression[]> templateArgsFunc) {
+        this(Pattern.compile(".*"), matcher, template, templateArgsFunc);
+    }
+
+    public MethodTemplate(Pattern parentTypePattern, MethodMatcher matcher, JavaTemplate template, Function<MethodCall, Expression[]> templateArgsFunc) {
+        this.parentTypePattern = parentTypePattern;
         this.matcher = matcher;
         this.template = template;
         this.templateArgsFunc = templateArgsFunc;
@@ -67,5 +63,22 @@ public class MethodTemplate {
             return ((J.Identifier) mi.getSelect()).getFieldType() != null;
         }
         return true;
+    }
+
+    private static Expression[] apply(MethodCall m) {
+        Expression select = isInstanceCall(m) ? ((J.MethodInvocation) m).getSelect() : null;
+
+        if (m.getArguments().isEmpty() || m.getArguments().get(0) instanceof J.Empty) {
+            return select != null ? new Expression[]{select} : new Expression[0];
+        }
+
+        Expression[] args = m.getArguments().toArray(new Expression[0]);
+        if (select != null) {
+            Expression[] newArgs = new Expression[args.length + 1];
+            newArgs[0] = select;
+            System.arraycopy(args, 0, newArgs, 1, args.length);
+            return newArgs;
+        }
+        return args;
     }
 }
