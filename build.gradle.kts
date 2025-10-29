@@ -28,7 +28,7 @@ dependencies {
     testImplementation("org.openrewrite:rewrite-test")
     testImplementation("org.openrewrite:rewrite-maven")
 
-    testRuntimeOnly("org.openrewrite:rewrite-java-25")
+    testRuntimeOnly("org.openrewrite:rewrite-java-21")
     testRuntimeOnly("joda-time:joda-time:2.12.3")
     testRuntimeOnly("org.threeten:threeten-extra:1.8.0")
 }
