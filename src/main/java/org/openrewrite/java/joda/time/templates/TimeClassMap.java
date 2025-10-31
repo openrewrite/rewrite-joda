@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.joda.time.templates;
 
+import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.java.tree.JavaType;
 
@@ -51,11 +52,22 @@ public class TimeClassMap {
                 null, null, null, null, null);
     }
 
-    public static JavaType.@Nullable Class getJavaTimeType(String typeFqn) {
-        return new TimeClassMap().jodaToJavaTimeMap.get(typeFqn);
+    public static @NotNull JavaType getJavaTimeType(JavaType type) {
+        if (!(type instanceof JavaType.Class)) throw new RuntimeException("Not a JavaType.Class: " + type);
+        JavaType.Class clazz = (JavaType.Class) type;
+        String fullyQualifiedName = clazz.getFullyQualifiedName();
+        return new TimeClassMap().jodaToJavaTimeMap.get(fullyQualifiedName);
     }
 
-    public static @Nullable String getJavaTimeShortName(String typeFqn) {
-        return new TimeClassMap().jodaToJavaTimeShortName.get(typeFqn);
+    public static @NotNull String getJavaTimeShortName(JavaType type) {
+        if (!(type instanceof JavaType.Class)) throw new RuntimeException("Not a JavaType.Class: " + type);
+        JavaType.Class clazz = (JavaType.Class) type;
+        String fullyQualifiedName = clazz.getFullyQualifiedName();
+        String result = new TimeClassMap().jodaToJavaTimeShortName.get(fullyQualifiedName);
+        if(result == null) {
+            String[] split = fullyQualifiedName.split("\\.");
+            return split[split.length - 1];
+        }
+        return result;
     }
 }
