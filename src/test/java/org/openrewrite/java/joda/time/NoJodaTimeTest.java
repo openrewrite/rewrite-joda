@@ -111,4 +111,106 @@ class NoJodaTimeTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void localDate() {
+        rewriteRun(
+          mavenProject("foo",
+            srcMainJava(
+              // language=java
+              java(
+                """
+                  import org.joda.time.LocalDate;
+
+                  class A {
+                      void foo() {
+                          LocalDate dt = LocalDate.now();
+                          LocalDate dt1 = dt.plusDays(1);
+                      }
+                  }
+                  """,
+                """
+                  import java.time.LocalDate;
+
+                  class A {
+                      void foo() {
+                          LocalDate dt = LocalDate.now();
+                          LocalDate dt1 = dt.plusDays(1);
+                      }
+                  }
+                  """
+              ),
+              //language=xml
+              pomXml(
+                """
+                  <project>
+                      <modelVersion>4.0.0</modelVersion>
+                      <groupId>com.example.foobar</groupId>
+                      <artifactId>foobar-core</artifactId>
+                      <version>1.0.0</version>
+                      <dependencies>
+                          <dependency>
+                              <groupId>joda-time</groupId>
+                              <artifactId>joda-time</artifactId>
+                              <version>2.12.3</version>
+                          </dependency>
+                      </dependencies>
+                  </project>
+                  """
+              )
+            )
+          )
+        );
+    }
+
+    @Test
+    void dateMidnight() {
+        rewriteRun(
+          mavenProject("foo",
+            srcMainJava(
+              // language=java
+              java(
+                """
+                  import org.joda.time.DateMidnight;
+
+                  class A {
+                      void foo() {
+                          long now = DateMidnight.now().getMillis();
+                      }
+                  }
+                  """,
+                """
+                  import java.time.LocalDate;
+                  import java.time.ZoneId;
+                  import java.time.ZoneOffset;
+
+                  class A {
+                      void foo() {
+                          long now = LocalDate.now().atStartOfDay().toInstant(ZoneOffset.of(ZoneId.systemDefault().getId())).toEpochMilli();
+                      }
+                  }
+                  """
+              ),
+              //language=xml
+              pomXml(
+                """
+                  <project>
+                      <modelVersion>4.0.0</modelVersion>
+                      <groupId>com.example.foobar</groupId>
+                      <artifactId>foobar-core</artifactId>
+                      <version>1.0.0</version>
+                      <dependencies>
+                          <dependency>
+                              <groupId>joda-time</groupId>
+                              <artifactId>joda-time</artifactId>
+                              <version>2.14.0</version>
+                          </dependency>
+                      </dependencies>
+                  </project>
+                  """
+              )
+            )
+          )
+        );
+    }
 }
