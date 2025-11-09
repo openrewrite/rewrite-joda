@@ -23,8 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.openrewrite.java.joda.time.templates.TimeClassNames.*;
-import static org.openrewrite.java.joda.time.templates.TimeClassNames.JAVA_ZONE_ID;
-import static org.openrewrite.java.joda.time.templates.TimeClassNames.JAVA_ZONE_OFFSET;
 
 public class DateTimeMidnightTemplates implements Templates {
     private final MethodMatcher newDateTimeMidnight = new MethodMatcher(JODA_DATE_TIME_MIDNIGHT + " <constructor>()");
