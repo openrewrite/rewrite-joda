@@ -16,6 +16,7 @@
 package org.openrewrite.java.joda.time.templates;
 
 import lombok.Value;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.MethodCall;
 
@@ -43,8 +44,9 @@ public class AllTemplates {
     private static final MethodMatcher ANY_NEW_INTERVAL = new MethodMatcher(JODA_INTERVAL + " <constructor>(..)");
     private static final MethodMatcher ANY_ABSTRACT_INTERVAL = new MethodMatcher(JODA_ABSTRACT_INTERVAL + " *(..)");
     private static final MethodMatcher ANY_BASE_INTERVAL = new MethodMatcher(JODA_BASE_INTERVAL + " *(..)");
+    private static final MethodMatcher ANY_DATE_MIDNIGHT = new MethodMatcher(JODA_DATE_TIME_MIDNIGHT + " *(..)");
 
-    private static List<MatcherAndTemplates> templates = new ArrayList<MatcherAndTemplates>() {
+    private final static List<MatcherAndTemplates> templates = new ArrayList<MatcherAndTemplates>() {
         {
             add(new MatcherAndTemplates(ANY_ABSTRACT_DATE_TIME, new AbstractDateTimeTemplates()));
             add(new MatcherAndTemplates(ANY_ABSTRACT_DURATION, new AbstractDurationTemplates()));
@@ -63,13 +65,22 @@ public class AllTemplates {
             add(new MatcherAndTemplates(ANY_NEW_INTERVAL, new IntervalTemplates()));
             add(new MatcherAndTemplates(ANY_ABSTRACT_INTERVAL, new AbstractIntervalTemplates()));
             add(new MatcherAndTemplates(ANY_BASE_INTERVAL, new BaseIntervalTemplates()));
+            add(new MatcherAndTemplates(ANY_DATE_MIDNIGHT, new DateTimeMidnightTemplates()));
         }
     };
 
-    public static MethodTemplate getTemplate(MethodCall method) {
-        return getTemplateGroup(method).flatMap(templates -> templates.getTemplates().stream()
-                .filter(template -> template.getMatcher().matches(method) && templates.matchesMethodCall(method, template))
-                .findFirst()).orElse(null);
+    public static @Nullable MethodTemplate getTemplate(MethodCall method) {
+        Optional<Templates> templateGroup = getTemplateGroup(method);
+        if (templateGroup.isPresent()) {
+            Templates templates = templateGroup.get();
+            for (MethodTemplate template : templates.getTemplates()) {
+                if (template.getMatcher().matches(method) && templates.matchesMethodCall(method, template)) {
+                    return template;
+                }
+            }
+        }
+
+        return null;
     }
 
     private static Optional<Templates> getTemplateGroup(MethodCall method) {

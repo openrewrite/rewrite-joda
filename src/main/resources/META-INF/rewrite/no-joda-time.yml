@@ -35,4 +35,3 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.joda.time.LocalDate
       newFullyQualifiedTypeName: java.time.LocalDate
-  - org.openrewrite.java.joda.time.BaseDateTimeMethods
