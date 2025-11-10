@@ -27,6 +27,7 @@ dependencies {
 
     testImplementation("org.openrewrite:rewrite-test")
     testImplementation("org.openrewrite:rewrite-maven")
+    testImplementation("org.junit-pioneer:junit-pioneer:2.+")
 
     testRuntimeOnly("org.openrewrite:rewrite-java-21")
     testRuntimeOnly("joda-time:joda-time:2.12.3")

@@ -16,6 +16,7 @@
 package org.openrewrite.java.joda.time;
 
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.ExpectedToFail;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -108,6 +109,66 @@ class NoJodaTimeTest implements RewriteTest {
                   """
               )
             )
+          )
+        );
+    }
+
+    @Test
+    @ExpectedToFail("LocalDate migration is not supported, yet. See https://github.com/openrewrite/rewrite-joda/issues/6")
+    void localDate() {
+        rewriteRun(
+          java(
+            """
+              import org.joda.time.LocalDate;
+
+              class A {
+                  void foo() {
+                      LocalDate dt = LocalDate.now();
+                      LocalDate gt2 = new LocalDate();
+                      LocalDate dt1 = dt.plusDays(1);
+                  }
+              }
+              """,
+            """
+              import java.time.LocalDate;
+
+              class A {
+                  void foo() {
+                      LocalDate dt = LocalDate.now();
+                      LocalDate gt2 = LocalDate.now();
+                      LocalDate dt1 = dt.plusDays(1);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void dateMidnight() {
+        rewriteRun(
+          // language=java
+          java(
+            """
+              import org.joda.time.DateMidnight;
+
+              class A {
+                  void foo() {
+                      new DateMidnight();
+                  }
+              }
+              """,
+            """
+              import java.time.LocalDate;
+              import java.time.ZoneId;
+              import java.time.ZoneOffset;
+
+              class A {
+                  void foo() {
+                      LocalDate.now().atStartOfDay(ZoneOffset.of(ZoneId.systemDefault().getId()));
+                  }
+              }
+              """
           )
         );
     }
