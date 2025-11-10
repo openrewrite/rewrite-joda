@@ -16,6 +16,7 @@
 package org.openrewrite.java.joda.time;
 
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.ExpectedToFail;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -113,6 +114,7 @@ class NoJodaTimeTest implements RewriteTest {
     }
 
     @Test
+    @ExpectedToFail("LocalDate migration is not supported, yet. See https://github.com/openrewrite/rewrite-joda/issues/6")
     void localDate() {
         rewriteRun(
           java(
@@ -122,6 +124,7 @@ class NoJodaTimeTest implements RewriteTest {
               class A {
                   void foo() {
                       LocalDate dt = LocalDate.now();
+                      LocalDate gt2 = new LocalDate();
                       LocalDate dt1 = dt.plusDays(1);
                   }
               }
@@ -132,6 +135,7 @@ class NoJodaTimeTest implements RewriteTest {
               class A {
                   void foo() {
                       LocalDate dt = LocalDate.now();
+                      LocalDate gt2 = LocalDate.now();
                       LocalDate dt1 = dt.plusDays(1);
                   }
               }

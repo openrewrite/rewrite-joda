@@ -32,6 +32,3 @@ recipeList:
       version: 1.8.0
       onlyIfUsing: org.joda.time.*Interval*
   - org.openrewrite.java.joda.time.JodaTimeRecipe
-  - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.joda.time.LocalDate
-      newFullyQualifiedTypeName: java.time.LocalDate
