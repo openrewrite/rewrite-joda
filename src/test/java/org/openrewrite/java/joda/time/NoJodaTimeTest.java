@@ -113,8 +113,8 @@ class NoJodaTimeTest implements RewriteTest {
         );
     }
 
-    @Test
     @ExpectedToFail("LocalDate migration is not supported, yet. See https://github.com/openrewrite/rewrite-joda/issues/6")
+    @Test
     void localDate() {
         rewriteRun(
           java(
