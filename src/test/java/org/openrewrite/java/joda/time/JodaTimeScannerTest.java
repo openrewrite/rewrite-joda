@@ -234,8 +234,7 @@ class JodaTimeScannerTest implements RewriteTest {
               """
           )
         );
-        assertThat(scanner.getAcc().getUnsafeVars().stream().map(J.VariableDeclarations.NamedVariable::getSimpleName))
-          .hasSize(2)
+        assertThat(scanner.getAcc().getUnsafeVars()).extracting(J.VariableDeclarations.NamedVariable::getSimpleName)
           .containsExactlyInAnyOrder("p1", "p2");
     }
 
@@ -276,8 +275,7 @@ class JodaTimeScannerTest implements RewriteTest {
               """
           )
         );
-        assertThat(scanner.getAcc().getUnsafeVars().stream().map(J.VariableDeclarations.NamedVariable::getSimpleName))
-          .hasSize(4)
+        assertThat(scanner.getAcc().getUnsafeVars()).extracting(J.VariableDeclarations.NamedVariable::getSimpleName)
           .containsExactlyInAnyOrder("p1", "p2", "p3", "p4");
     }
 
@@ -364,7 +362,7 @@ class JodaTimeScannerTest implements RewriteTest {
         assertThat(scanner.getAcc().getSafeMethodMap()).hasSize(1);
         assertThat(scanner.getAcc().getSafeMethodMap().entrySet().stream().filter(Map.Entry::getValue).map(e -> e.getKey().toString()))
           .containsExactlyInAnyOrder("A{name=dateTime,return=org.joda.time.DateTime,parameters=[org.joda.time.Period]}");
-        assertThat(scanner.getAcc().getUnsafeVars().stream().map(J.VariableDeclarations.NamedVariable::getSimpleName))
+        assertThat(scanner.getAcc().getUnsafeVars()).extracting(J.VariableDeclarations.NamedVariable::getSimpleName)
                 .containsExactlyInAnyOrder("period");
     }
 
@@ -392,7 +390,7 @@ class JodaTimeScannerTest implements RewriteTest {
         );
         assertThat(scanner.getAcc().getSafeMethodMap()).hasSize(1);
         assertThat(scanner.getAcc().getSafeMethodMap().entrySet().stream().filter(Map.Entry::getValue)).isEmpty();
-        assertThat(scanner.getAcc().getUnsafeVars().stream().map(J.VariableDeclarations.NamedVariable::getSimpleName))
+        assertThat(scanner.getAcc().getUnsafeVars()).extracting(J.VariableDeclarations.NamedVariable::getSimpleName)
                 .containsExactlyInAnyOrder("dt");
     }
 
@@ -421,7 +419,7 @@ class JodaTimeScannerTest implements RewriteTest {
         );
         assertThat(scanner.getAcc().getSafeMethodMap()).hasSize(1);
         assertThat(scanner.getAcc().getSafeMethodMap().entrySet().stream().filter(Map.Entry::getValue)).isEmpty();
-        assertThat(scanner.getAcc().getUnsafeVars().stream().map(J.VariableDeclarations.NamedVariable::getSimpleName))
+        assertThat(scanner.getAcc().getUnsafeVars()).extracting(J.VariableDeclarations.NamedVariable::getSimpleName)
           .containsExactlyInAnyOrder("dt", "dt");
     }
 }
