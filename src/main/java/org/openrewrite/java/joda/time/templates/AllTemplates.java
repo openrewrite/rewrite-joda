@@ -28,7 +28,7 @@ import java.util.Optional;
 import static org.openrewrite.java.joda.time.templates.TimeClassNames.*;
 
 public class AllTemplates {
-    private static final Map<String, Templates> templates = new HashMap<String, Templates>() {
+    public static final Map<String, Templates> templates = new HashMap<String, Templates>() {
         {
             put(JODA_ABSTRACT_DATE_TIME, new AbstractDateTimeTemplates());
             put(JODA_ABSTRACT_DURATION, new AbstractDurationTemplates());

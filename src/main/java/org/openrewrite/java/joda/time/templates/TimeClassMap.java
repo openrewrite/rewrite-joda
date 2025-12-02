@@ -15,8 +15,6 @@
  */
 package org.openrewrite.java.joda.time.templates;
 
-import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.Nullable;
 import org.openrewrite.java.tree.JavaType;
 
 import java.util.HashMap;
@@ -26,9 +24,7 @@ import static org.openrewrite.java.joda.time.templates.TimeClassNames.*;
 
 public class TimeClassMap {
 
-    private static final JavaType.Class object = JavaType.ShallowClass.build("java.lang.Object");
-
-    private final Map<String, JavaType.Class> jodaToJavaTimeMap = new HashMap<String, JavaType.Class>() {
+    private static final Map<String, JavaType.Class> jodaToJavaTimeMap = new HashMap<String, JavaType.Class>() {
         {
             put(JODA_DATE_TIME, javaTypeClass(JAVA_DATE_TIME));
             put(JODA_BASE_DATE_TIME, javaTypeClass(JAVA_DATE_TIME));
@@ -40,7 +36,7 @@ public class TimeClassMap {
         }
     };
 
-    private final Map<String, String> jodaToJavaTimeShortName = new HashMap<String, String>() {
+    private static final Map<String, String> jodaToJavaTimeShortName = new HashMap<String, String>() {
         {
             put(JODA_DATE_TIME, "ZonedDateTime");
             put(JODA_DATE_TIME_ZONE, "ZoneId");
@@ -48,26 +44,41 @@ public class TimeClassMap {
     };
 
     private static JavaType.Class javaTypeClass(String fqn) {
-        return new JavaType.Class(null, 0, fqn, JavaType.FullyQualified.Kind.Class, null, TimeClassMap.object,
-                null, null, null, null, null);
+        return (JavaType.Class)JavaType.buildType(fqn);
     }
 
-    public static @NotNull JavaType getJavaTimeType(JavaType type) {
-        if (!(type instanceof JavaType.Class)) throw new RuntimeException("Not a JavaType.Class: " + type);
+    public static JavaType getJavaTimeType(JavaType type) {
+        if (!(type instanceof JavaType.Class)) {
+            System.out.println("Not a JavaType.Class: " + type);
+            return null;
+        }
+
         JavaType.Class clazz = (JavaType.Class) type;
         String fullyQualifiedName = clazz.getFullyQualifiedName();
-        return new TimeClassMap().jodaToJavaTimeMap.get(fullyQualifiedName);
+        JavaType.Class javaClass = TimeClassMap.jodaToJavaTimeMap.get(fullyQualifiedName);
+        if (javaClass == null) {
+            System.out.println("Joda type is found but mapping is missing: " + fullyQualifiedName);
+            return null;
+        }
+
+        return javaClass;
     }
 
-    public static @NotNull String getJavaTimeShortName(JavaType type) {
-        if (!(type instanceof JavaType.Class)) throw new RuntimeException("Not a JavaType.Class: " + type);
+    public static String getJavaTimeShortName(JavaType type) {
+        if (!(type instanceof JavaType.Class)) {
+            System.out.println("Not a JavaType.Class: " + type);
+            return null;
+        }
+
         JavaType.Class clazz = (JavaType.Class) type;
         String fullyQualifiedName = clazz.getFullyQualifiedName();
-        String result = new TimeClassMap().jodaToJavaTimeShortName.get(fullyQualifiedName);
+        String result = TimeClassMap.jodaToJavaTimeShortName.get(fullyQualifiedName);
         if(result == null) {
+            System.out.println("Joda type is found but mapping is missing: " + fullyQualifiedName);
             String[] split = fullyQualifiedName.split("\\.");
             return split[split.length - 1];
         }
+
         return result;
     }
 }

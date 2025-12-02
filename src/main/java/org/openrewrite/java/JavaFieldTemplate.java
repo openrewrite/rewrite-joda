@@ -23,4 +23,8 @@ import lombok.Value;
 public class JavaFieldTemplate {
     String type;
     String name;
+
+    public String getSimpleName() {
+        return type.substring(type.lastIndexOf('.') + 1);
+    }
 }
