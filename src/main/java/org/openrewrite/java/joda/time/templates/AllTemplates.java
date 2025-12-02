@@ -19,6 +19,9 @@ import org.openrewrite.java.JavaFieldTemplate;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
+import lombok.Value;
+import org.jspecify.annotations.Nullable;
+import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.MethodCall;
 
 import java.util.HashMap;
@@ -44,6 +47,7 @@ public class AllTemplates {
             put(JODA_INTERVAL, new IntervalTemplates());
             put(JODA_ABSTRACT_INTERVAL, new AbstractIntervalTemplates());
             put(JODA_BASE_INTERVAL, new BaseIntervalTemplates());
+            put(JODA_DATE_TIME_MIDNIGHT, new DateTimeMidnightTemplates());
         }
     };
 

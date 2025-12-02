@@ -67,6 +67,7 @@ class JodaTimeVisitor extends JavaVisitor<ExecutionContext> {
             maybeRemoveImport(JODA_TIME_FORMATTER);
             maybeRemoveImport(JODA_LOCAL_DATE);
             maybeRemoveImport(JODA_LOCAL_TIME);
+            maybeRemoveImport(JODA_DATE_TIME_MIDNIGHT);
 
             maybeAddImport(JAVA_DATE_TIME);
             maybeAddImport(JAVA_ZONE_OFFSET);

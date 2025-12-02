@@ -35,6 +35,7 @@ public class TimeClassNames {
     public static final String JODA_BASE_DATE_TIME = JODA_TIME_PKG + ".base.BaseDateTime";
     public static final String JODA_DATE_TIME = JODA_TIME_PKG + ".DateTime";
     public static final String JODA_DATE_TIME_ZONE = JODA_TIME_PKG + ".DateTimeZone";
+    public static final String JODA_DATE_TIME_MIDNIGHT = JODA_TIME_PKG + ".DateMidnight";
     public static final String JODA_TIME_FORMAT = JODA_TIME_PKG + ".format.DateTimeFormat";
     public static final String JODA_TIME_FORMATTER = JODA_TIME_PKG + ".format.DateTimeFormatter";
     public static final String JODA_LOCAL_DATE = JODA_TIME_PKG + ".LocalDate";
@@ -62,6 +63,7 @@ public class TimeClassNames {
     public static final String JAVA_TEMPORAL_ADJUSTER = JAVA_TIME_PKG + ".temporal.TemporalAdjuster";
     public static final String JAVA_LOCAL_DATE = JAVA_TIME_PKG + ".LocalDate";
     public static final String JAVA_LOCAL_TIME = JAVA_TIME_PKG + ".LocalTime";
+    public static final String JAVA_LOCAL_DATE_TIME = JAVA_TIME_PKG + ".LocalDateTime";
     public static final String JAVA_TEMPORAL_ISO_FIELDS = JAVA_TIME_PKG + ".temporal.IsoFields";
     public static final String JAVA_CHRONO_FIELD = JAVA_TIME_PKG + ".temporal.ChronoField";
 
