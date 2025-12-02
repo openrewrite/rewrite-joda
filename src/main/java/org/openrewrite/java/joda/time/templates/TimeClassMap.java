@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.joda.time.templates;
 
-import org.jspecify.annotations.Nullable;
 import org.openrewrite.java.tree.JavaType;
 
 import java.util.HashMap;
@@ -25,36 +24,61 @@ import static org.openrewrite.java.joda.time.templates.TimeClassNames.*;
 
 public class TimeClassMap {
 
-    private static final JavaType.Class object = JavaType.ShallowClass.build("java.lang.Object");
-
-    private final Map<String, JavaType.Class> jodaToJavaTimeMap = new HashMap<String, JavaType.Class>() {
+    private static final Map<String, JavaType.Class> jodaToJavaTimeMap = new HashMap<String, JavaType.Class>() {
         {
-            put(JODA_DATE_TIME, javaTypeClass(JAVA_DATE_TIME, object));
-            put(JODA_BASE_DATE_TIME, javaTypeClass(JAVA_DATE_TIME, object));
-            put(JODA_DATE_TIME_ZONE, javaTypeClass(JAVA_ZONE_ID, object));
-            put(JODA_TIME_FORMATTER, javaTypeClass(JAVA_TIME_FORMATTER, object));
-            put(JODA_DURATION, javaTypeClass(JAVA_DURATION, object));
-            put(JODA_READABLE_DURATION, javaTypeClass(JAVA_DURATION, object));
-            put(JODA_INTERVAL, javaTypeClass(THREE_TEN_EXTRA_INTERVAL, object));
+            put(JODA_DATE_TIME, javaTypeClass(JAVA_DATE_TIME));
+            put(JODA_BASE_DATE_TIME, javaTypeClass(JAVA_DATE_TIME));
+            put(JODA_DATE_TIME_ZONE, javaTypeClass(JAVA_ZONE_ID));
+            put(JODA_TIME_FORMATTER, javaTypeClass(JAVA_TIME_FORMATTER));
+            put(JODA_DURATION, javaTypeClass(JAVA_DURATION));
+            put(JODA_READABLE_DURATION, javaTypeClass(JAVA_DURATION));
+            put(JODA_INTERVAL, javaTypeClass(THREE_TEN_EXTRA_INTERVAL));
         }
     };
 
-    private final Map<String, String> jodaToJavaTimeShortName = new HashMap<String, String>() {
+    private static final Map<String, String> jodaToJavaTimeShortName = new HashMap<String, String>() {
         {
             put(JODA_DATE_TIME, "ZonedDateTime");
+            put(JODA_DATE_TIME_ZONE, "ZoneId");
         }
     };
 
-    private static JavaType.Class javaTypeClass(String fqn, JavaType.Class superType) {
-        return new JavaType.Class(null, 0, fqn, JavaType.FullyQualified.Kind.Class, null, superType,
-                null, null, null, null, null);
+    private static JavaType.Class javaTypeClass(String fqn) {
+        return (JavaType.Class)JavaType.buildType(fqn);
     }
 
-    public static JavaType.@Nullable Class getJavaTimeType(String typeFqn) {
-        return new TimeClassMap().jodaToJavaTimeMap.get(typeFqn);
+    public static JavaType getJavaTimeType(JavaType type) {
+        if (!(type instanceof JavaType.Class)) {
+            System.out.println("Not a JavaType.Class: " + type);
+            return null;
+        }
+
+        JavaType.Class clazz = (JavaType.Class) type;
+        String fullyQualifiedName = clazz.getFullyQualifiedName();
+        JavaType.Class javaClass = TimeClassMap.jodaToJavaTimeMap.get(fullyQualifiedName);
+        if (javaClass == null) {
+            System.out.println("Joda type is found but mapping is missing: " + fullyQualifiedName);
+            return null;
+        }
+
+        return javaClass;
     }
 
-    public static @Nullable String getJavaTimeShortName(String typeFqn) {
-        return new TimeClassMap().jodaToJavaTimeShortName.get(typeFqn);
+    public static String getJavaTimeShortName(JavaType type) {
+        if (!(type instanceof JavaType.Class)) {
+            System.out.println("Not a JavaType.Class: " + type);
+            return null;
+        }
+
+        JavaType.Class clazz = (JavaType.Class) type;
+        String fullyQualifiedName = clazz.getFullyQualifiedName();
+        String result = TimeClassMap.jodaToJavaTimeShortName.get(fullyQualifiedName);
+        if(result == null) {
+            System.out.println("Joda type is found but mapping is missing: " + fullyQualifiedName);
+            String[] split = fullyQualifiedName.split("\\.");
+            return split[split.length - 1];
+        }
+
+        return result;
     }
 }
