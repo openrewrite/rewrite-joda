@@ -21,6 +21,7 @@ public class TimeClassNames {
     public static final Pattern JODA_CLASS_PATTERN = Pattern.compile("org\\.joda\\.time\\..*");
 
     //missing template messages
+    public static final String JODA_MISSING_MAPPING = "Joda usage is found but mapping is missing";
     public static final String JODA_MULTIPLE_MAPPING_POSSIBLE = "Multiple mapping is possible.Update manually";
     public static final String JODA_NO_AUTOMATIC_MAPPING_POSSIBLE = "Not possible to migrate with recipe.Update manually";
 

@@ -34,6 +34,6 @@ public class JodaTimeRecipe extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>("org.joda.time.*", true), new JodaTimeVisitor());
+        return Preconditions.check(new UsesType<>("org.joda.time.*", true), new JodaTimeVisitor(this));
     }
 }

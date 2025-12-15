@@ -2,6 +2,7 @@
 plugins {
     id("org.openrewrite.build.recipe-library") version "latest.release"
     id("org.openrewrite.build.moderne-source-available-license") version "latest.release"
+    id("org.openrewrite.rewrite") version("7.22.0")
 }
 
 group = "org.openrewrite.recipe"
@@ -18,6 +19,10 @@ dependencies {
     implementation("org.openrewrite.meta:rewrite-analysis:${rewriteVersion}")
     implementation("org.openrewrite.recipe:rewrite-java-dependencies:${rewriteVersion}")
 
+    implementation("org.slf4j:slf4j-api:2.0.12")
+
+    runtimeOnly("ch.qos.logback:logback-classic:1.5.12")
+
 //    annotationProcessor("org.openrewrite:rewrite-templating:${rewriteVersion}")
 //    implementation("org.openrewrite:rewrite-templating:${rewriteVersion}")
 //    compileOnly("com.google.errorprone:error_prone_core:2.+") {
@@ -32,6 +37,12 @@ dependencies {
     testRuntimeOnly("org.openrewrite:rewrite-java-21")
     testRuntimeOnly("joda-time:joda-time:2.12.3")
     testRuntimeOnly("org.threeten:threeten-extra:1.8.0")
+
+    rewrite("org.openrewrite.recipe:rewrite-java-dependencies:1.47.0")
+}
+
+repositories {
+    mavenCentral()
 }
 
 tasks.withType<Test> {
@@ -40,4 +51,14 @@ tasks.withType<Test> {
 
 tasks.withType<JavaCompile> {
     options.compilerArgs.add("-Arewrite.javaParserClasspathFrom=resources")
+}
+
+rewrite {
+    activeRecipe("org.openrewrite.java.joda.time.JodaTimeRecipe")
+    setExportDatatables(true)
+}
+
+tasks.test {
+    minHeapSize = "512m"
+    maxHeapSize = "4g"
 }

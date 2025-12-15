@@ -19,9 +19,6 @@ import org.openrewrite.java.JavaFieldTemplate;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
-import lombok.Value;
-import org.jspecify.annotations.Nullable;
-import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.MethodCall;
 
 import java.util.HashMap;
@@ -36,18 +33,18 @@ public class AllTemplates {
             put(JODA_ABSTRACT_DATE_TIME, new AbstractDateTimeTemplates());
             put(JODA_ABSTRACT_DURATION, new AbstractDurationTemplates());
             put(JODA_ABSTRACT_INSTANT, new AbstractInstantTemplates());
+            put(JODA_ABSTRACT_INTERVAL, new AbstractIntervalTemplates());
             put(JODA_BASE_DATE_TIME, new BaseDateTime());
-            put(JODA_TIME_FORMAT, new DateTimeFormatTemplates());
-            put(JODA_TIME_FORMATTER, new DateTimeFormatterTemplates());
-            put(JODA_DATE_TIME, new DateTimeTemplates());
-            put(JODA_DURATION, new DurationTemplates());
             put(JODA_BASE_DURATION, new BaseDurationTemplates());
+            put(JODA_BASE_INTERVAL, new BaseIntervalTemplates());
+            put(JODA_DATE_TIME, new DateTimeTemplates());
+            put(JODA_DATE_TIME_MIDNIGHT, new DateTimeMidnightTemplates());
             put(JODA_DATE_TIME_ZONE, new DateTimeZoneTemplates());
+            put(JODA_DURATION, new DurationTemplates());
             put(JODA_INSTANT, new InstantTemplates());
             put(JODA_INTERVAL, new IntervalTemplates());
-            put(JODA_ABSTRACT_INTERVAL, new AbstractIntervalTemplates());
-            put(JODA_BASE_INTERVAL, new BaseIntervalTemplates());
-            put(JODA_DATE_TIME_MIDNIGHT, new DateTimeMidnightTemplates());
+            put(JODA_TIME_FORMAT, new DateTimeFormatTemplates());
+            put(JODA_TIME_FORMATTER, new DateTimeFormatterTemplates());
         }
     };
 

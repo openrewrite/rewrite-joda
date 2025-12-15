@@ -672,7 +672,7 @@ class JodaTimeVisitorTest implements RewriteTest {
     }
 
     @Test
-    void dontChangeMethodsWithUnhandledArguments() {
+    void changeMethodsWithUnhandledArguments() {
         //language=java
         rewriteRun(
           java(
@@ -684,6 +684,18 @@ class JodaTimeVisitorTest implements RewriteTest {
                   public void foo() {
                       // DateTimeFormat.forStyle is unhandled so parent method should not be changed
                       System.out.println(DateTime.parse("2024-09-30T23:03:00.000Z", DateTimeFormat.forStyle("SS")));
+                  }
+              }
+              """,
+            """
+              import org.joda.time.format.DateTimeFormat;
+
+              import java.time.ZonedDateTime;
+
+              class A {
+                  public void foo() {
+                      // DateTimeFormat.forStyle is unhandled so parent method should not be changed
+                      System.out.println(ZonedDateTime.parse("2024-09-30T23:03:00.000Z", DateTimeFormat.forStyle("SS")));
                   }
               }
               """
