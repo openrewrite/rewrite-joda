@@ -29,3 +29,8 @@ dependencies {
     testRuntimeOnly("joda-time:joda-time:2.12.3")
     testRuntimeOnly("org.threeten:threeten-extra:1.8.0")
 }
+
+tasks.test {
+    minHeapSize = "512m"
+    maxHeapSize = "4g"
+}
