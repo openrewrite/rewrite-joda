@@ -1,4 +1,3 @@
-@file:Suppress("UnstableApiUsage")
 plugins {
     id("org.openrewrite.build.recipe-library") version "latest.release"
     id("org.openrewrite.build.moderne-source-available-license") version "latest.release"
@@ -22,13 +21,6 @@ dependencies {
 
     runtimeOnly("ch.qos.logback:logback-classic:1.5.12")
 
-//    annotationProcessor("org.openrewrite:rewrite-templating:${rewriteVersion}")
-//    implementation("org.openrewrite:rewrite-templating:${rewriteVersion}")
-//    compileOnly("com.google.errorprone:error_prone_core:2.+") {
-//        exclude("com.google.auto.service", "auto-service-annotations")
-//        exclude("io.github.eisop","dataflow-errorprone")
-//    }
-
     testImplementation("org.openrewrite:rewrite-test")
     testImplementation("org.openrewrite:rewrite-maven")
     testImplementation("org.junit-pioneer:junit-pioneer:2.+")
@@ -36,28 +28,4 @@ dependencies {
     testRuntimeOnly("org.openrewrite:rewrite-java-21")
     testRuntimeOnly("joda-time:joda-time:2.12.3")
     testRuntimeOnly("org.threeten:threeten-extra:1.8.0")
-
-    rewrite("org.openrewrite.recipe:rewrite-java-dependencies:1.47.0")
-}
-
-repositories {
-    mavenCentral()
-}
-
-tasks.withType<Test> {
-    jvmArgs("-Xmx1g", "-Xms512m")
-}
-
-tasks.withType<JavaCompile> {
-    options.compilerArgs.add("-Arewrite.javaParserClasspathFrom=resources")
-}
-
-rewrite {
-    activeRecipe("org.openrewrite.java.joda.time.JodaTimeRecipe")
-    setExportDatatables(true)
-}
-
-tasks.test {
-    minHeapSize = "512m"
-    maxHeapSize = "4g"
 }
