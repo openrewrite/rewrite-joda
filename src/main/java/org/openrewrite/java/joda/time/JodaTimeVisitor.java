@@ -136,9 +136,7 @@ class JodaTimeVisitor extends JavaVisitor<ExecutionContext> {
             return classParameter;
         }
         JavaType javaTimeType = timeClassMap.getJavaTimeType(classParameter);
-        if (javaTimeType == null) {
-            return classParameter;
-        }
+        if (javaTimeType == null) return classParameter;
 
         return javaTimeType;
     }
@@ -146,18 +144,10 @@ class JodaTimeVisitor extends JavaVisitor<ExecutionContext> {
     @Override
     public @NonNull J visitVariableDeclarations(@NonNull J.VariableDeclarations multiVariable, @NonNull ExecutionContext ctx) {
         J.VariableDeclarations mv = (J.VariableDeclarations) super.visitVariableDeclarations(multiVariable, ctx);
-        if (multiVariable.getTypeExpression() == null) {
-            return mv;
-        }
-        if (!isJoda(mv.getType())) {
-            return mv;
-        }
-        if (javaTimeType == null) {
-            return mv;
-        }
-        if (javaTimeShortName == null) {
-            return mv;
-        }
+        if (multiVariable.getTypeExpression() == null) return mv;
+        if (!isJoda(mv.getType())) return mv;
+
+        JavaType javaTimeType = timeClassMap.getJavaTimeType(mv.getType());
         if (javaTimeType == null) return mv;
 
         String javaTimeShortName = timeClassMap.getJavaTimeShortName(mv.getType());
@@ -174,34 +164,16 @@ class JodaTimeVisitor extends JavaVisitor<ExecutionContext> {
     public @NonNull J visitVariable(@NonNull J.VariableDeclarations.NamedVariable variable, @NonNull ExecutionContext ctx) {
         J.VariableDeclarations.NamedVariable v = (J.VariableDeclarations.NamedVariable) super.visitVariable(variable, ctx);
         JavaType variableType = extractVariableType(v);
-        if (variableType == null) {
-            return v;
-        }
-        if (!isJoda(variableType)) {
-            return v;
-        }
-        if (javaTimeType == null) {
-            return v;
-        }
-        if (jodaType == null) {
-            return null;
-        }
-        if (jodaType instanceof JavaType.Array) {
-            return ((JavaType.Array) jodaType).getElemType();
-        }
-        if (jodaType instanceof JavaType.Class) {
-            return jodaType;
-        }
-        if (!isJoda(a.getType())) {
-            return a;
-        }
-        if (!(a.getVariable() instanceof J.Identifier)) {
-            return a; //todo what is this check covering?
-        }
-        if (javaTimeType == null) {
-            return a;
-        }
-        return a.withType(javaTimeType);
+        if (variableType == null) return v;
+        if (!isJoda(variableType)) return v;
+
+        JavaType javaTimeType = timeClassMap.getJavaTimeType(variableType);
+        if (javaTimeType == null) return v;
+
+        return v.withType(javaTimeType);
+    }
+    private JavaType extractVariableType(J.VariableDeclarations.NamedVariable variable) {
+        JavaType jodaType = variable.getType();
         if (jodaType == null) return null;
         if (jodaType instanceof JavaType.Array) return ((JavaType.Array) jodaType).getElemType();
         if (jodaType instanceof JavaType.Class) return jodaType;
@@ -230,9 +202,7 @@ class JodaTimeVisitor extends JavaVisitor<ExecutionContext> {
     @Override
     public @NonNull J visitMethodInvocation(@NonNull J.MethodInvocation method, @NonNull ExecutionContext ctx) {
         J.MethodInvocation m = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
-        if (method.getMethodType() == null) {
-            return m;
-        }
+        if (method.getMethodType() == null) return m;
 
         // internal method with Joda class as return type
         if (!isJoda(method.getMethodType().getDeclaringType()) &&
@@ -246,18 +216,10 @@ class JodaTimeVisitor extends JavaVisitor<ExecutionContext> {
     @Override
     public @NonNull J visitFieldAccess(@NonNull J.FieldAccess fieldAccess, @NonNull ExecutionContext ctx) {
         J.FieldAccess f = (J.FieldAccess) super.visitFieldAccess(fieldAccess, ctx);
-        if (isTypeAccess(f)) {
-            return f;
-        }
-        if (!isJoda(f.getType())) {
-            return f;
-        }
-        if (javaTimeType == null) {
-            return f;
-        }
-        if (javaTimeShortName == null) {
-            return f;
-        }
+        if (isTypeAccess(f)) return f;
+        if (!isJoda(f.getType())) return f;
+
+        JavaType javaTimeType = timeClassMap.getJavaTimeType(f.getType());
         if (javaTimeType == null) return f;
 
         String javaTimeShortName = timeClassMap.getJavaTimeShortName(f.getType());
@@ -288,12 +250,8 @@ class JodaTimeVisitor extends JavaVisitor<ExecutionContext> {
     @Override
     public @NonNull J visitIdentifier(@NonNull J.Identifier ident, @NonNull ExecutionContext ctx) {
         J.Identifier i = (J.Identifier) super.visitIdentifier(ident, ctx);
-        if (i.getFieldType() == null) {
-            return i;
-        }
-        if (!isJoda(i.getFieldType().getType())) {
-            return i;
-        }
+        if (i.getFieldType() == null) return i;
+        if (!isJoda(i.getFieldType().getType())) return i;
 
         JavaType type = i.getType();
         if (type instanceof JavaType.Array) {return visitArrayIdentifier(i, ctx);}
@@ -304,12 +262,8 @@ class JodaTimeVisitor extends JavaVisitor<ExecutionContext> {
     private @NonNull J visitArrayIdentifier(J.Identifier arrayIdentifier, @NonNull ExecutionContext ctx) {
         JavaType.Array at = (JavaType.Array)arrayIdentifier.getType();
         JavaType.Array javaTimeType = at.withElemType(timeClassMap.getJavaTimeType(at.getElemType()));
-        if (javaTimeType == null) {
-            return arrayIdentifier;
-        }
-        if (javaTimeType == null) {
-            return classIdentifier;
-        }
+        if (javaTimeType == null) return arrayIdentifier;
+
         return arrayIdentifier.withType(javaTimeType)
                 .withFieldType(arrayIdentifier.getFieldType().withType(javaTimeType));
     }
@@ -324,12 +278,8 @@ class JodaTimeVisitor extends JavaVisitor<ExecutionContext> {
     @Override
     public J visitArrayAccess(J.ArrayAccess arrayAccess, @NonNull ExecutionContext ctx){
         J.ArrayAccess a = (J.ArrayAccess) super.visitArrayAccess(arrayAccess, ctx);
-        if (!isJoda(a.getType())) {
-            return a;
-        }
-        if (javaTimeType == null) {
-            return a;
-        }
+        if (!isJoda(a.getType())) return a;
+
         JavaType javaTimeType = timeClassMap.getJavaTimeType(a.getType());
         if (javaTimeType == null) return a;
 
