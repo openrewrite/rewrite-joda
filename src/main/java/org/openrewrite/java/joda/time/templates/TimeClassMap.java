@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.joda.time.templates;
 
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.java.joda.time.MappingLogger;
 import org.openrewrite.java.tree.JavaType;
 
@@ -54,7 +55,7 @@ public class TimeClassMap {
         return (JavaType.Class)JavaType.buildType(fqn);
     }
 
-    public JavaType getJavaTimeType(JavaType type) {
+    public @Nullable JavaType getJavaTimeType(JavaType type) {
         if (!(type instanceof JavaType.Class)) {
             logger.info("Not a JavaType.Class", type);
             return null;
