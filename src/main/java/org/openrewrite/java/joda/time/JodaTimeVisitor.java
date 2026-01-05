@@ -98,18 +98,10 @@ class JodaTimeVisitor extends JavaVisitor<ExecutionContext> {
     @Override
     public @NonNull J visitMethodDeclaration(@NonNull J.MethodDeclaration method, @NonNull ExecutionContext ctx) {
         J.MethodDeclaration m = (J.MethodDeclaration) super.visitMethodDeclaration(method, ctx);
-        if (m.getReturnTypeExpression() == null) {
-            return m;
-        }
-        if (!isJoda(m.getType())) {
-            return m;
-        }
-        if (returnType == null) {
-            return m;
-        }
-        if (returnSimpleName == null) {
-            return m;
-        }
+        if (m.getReturnTypeExpression() == null) return m;
+        if (!isJoda(m.getType())) return m;
+
+        JavaType returnType = timeClassMap.getJavaTimeType(m.getType());
         if (returnType == null) return m;
 
         String returnSimpleName = timeClassMap.getJavaTimeShortName(m.getType());
