@@ -94,18 +94,26 @@ class JodaTimeVisitor extends JavaVisitor<ExecutionContext> {
     @Override
     public @NonNull J visitMethodDeclaration(@NonNull J.MethodDeclaration method, @NonNull ExecutionContext ctx) {
         J.MethodDeclaration m = (J.MethodDeclaration) super.visitMethodDeclaration(method, ctx);
-        if (m.getReturnTypeExpression() == null) return m;
-        if (!isJoda(m.getType())) return m;
+        if (m.getReturnTypeExpression() == null) {
+            return m;
+        }
+        if (!isJoda(m.getType())) {
+            return m;
+        }
 
         JavaType returnType = timeClassMap.getJavaTimeType(m.getType());
-        if (returnType == null) return m;
+        if (returnType == null) {
+            return m;
+        }
 
         String returnSimpleName = timeClassMap.getJavaTimeShortName(m.getType());
-        if (returnSimpleName == null) return m;
+        if (returnSimpleName == null) {
+            return m;
+        }
 
         J.Identifier returnExpr = m.getReturnTypeExpression().withType(returnType);
         returnExpr = returnExpr
-                    .withSimpleName(returnSimpleName);
+                .withSimpleName(returnSimpleName);
 
         JavaType.Method methodType = m.getMethodType()
                 .withReturnType(returnType)
@@ -114,17 +122,25 @@ class JodaTimeVisitor extends JavaVisitor<ExecutionContext> {
         return m.withReturnTypeExpression(returnExpr)
                 .withMethodType(methodType);
     }
-    JavaType visitTypeParameter(JavaType parameter, @NonNull ExecutionContext ctx){
-        if (parameter instanceof JavaType.Class) {return visitClassTypeParameter(parameter, ctx);}
-        if (parameter instanceof JavaType.Array) {return ((JavaType.Array)parameter).withElemType(visitClassTypeParameter(((JavaType.Array) parameter).getElemType(), ctx));}
+
+    JavaType visitTypeParameter(JavaType parameter, @NonNull ExecutionContext ctx) {
+        if (parameter instanceof JavaType.Class) {
+            return visitClassTypeParameter(parameter, ctx);
+        }
+        if (parameter instanceof JavaType.Array) {
+            return ((JavaType.Array) parameter).withElemType(visitClassTypeParameter(((JavaType.Array) parameter).getElemType(), ctx));
+        }
         return parameter;
     }
+
     JavaType visitClassTypeParameter(JavaType classParameter, @NonNull ExecutionContext ctx) {
         if (!isJoda(classParameter)) {
             return classParameter;
         }
         JavaType javaTimeType = timeClassMap.getJavaTimeType(classParameter);
-        if (javaTimeType == null) return classParameter;
+        if (javaTimeType == null) {
+            return classParameter;
+        }
 
         return javaTimeType;
     }
@@ -132,14 +148,22 @@ class JodaTimeVisitor extends JavaVisitor<ExecutionContext> {
     @Override
     public @NonNull J visitVariableDeclarations(@NonNull J.VariableDeclarations multiVariable, @NonNull ExecutionContext ctx) {
         J.VariableDeclarations mv = (J.VariableDeclarations) super.visitVariableDeclarations(multiVariable, ctx);
-        if (multiVariable.getTypeExpression() == null) return mv;
-        if (!isJoda(mv.getType())) return mv;
+        if (multiVariable.getTypeExpression() == null) {
+            return mv;
+        }
+        if (!isJoda(mv.getType())) {
+            return mv;
+        }
 
         JavaType javaTimeType = timeClassMap.getJavaTimeType(mv.getType());
-        if (javaTimeType == null) return mv;
+        if (javaTimeType == null) {
+            return mv;
+        }
 
         String javaTimeShortName = timeClassMap.getJavaTimeShortName(mv.getType());
-        if (javaTimeShortName == null) return mv;
+        if (javaTimeShortName == null) {
+            return mv;
+        }
 
         J.Identifier typeExpression = mv.getTypeExpression().withType(javaTimeType);
         typeExpression = typeExpression
@@ -152,32 +176,51 @@ class JodaTimeVisitor extends JavaVisitor<ExecutionContext> {
     public @NonNull J visitVariable(@NonNull J.VariableDeclarations.NamedVariable variable, @NonNull ExecutionContext ctx) {
         J.VariableDeclarations.NamedVariable v = (J.VariableDeclarations.NamedVariable) super.visitVariable(variable, ctx);
         JavaType variableType = extractVariableType(v);
-        if (variableType == null) return v;
-        if (!isJoda(variableType)) return v;
+        if (variableType == null) {
+            return v;
+        }
+        if (!isJoda(variableType)) {
+            return v;
+        }
 
         JavaType javaTimeType = timeClassMap.getJavaTimeType(variableType);
-        if (javaTimeType == null) return v;
+        if (javaTimeType == null) {
+            return v;
+        }
 
         return v.withType(javaTimeType);
     }
+
     private JavaType extractVariableType(J.VariableDeclarations.NamedVariable variable) {
         JavaType jodaType = variable.getType();
-        if (jodaType == null) return null;
-        if (jodaType instanceof JavaType.Array) return ((JavaType.Array) jodaType).getElemType();
-        if (jodaType instanceof JavaType.Class) return jodaType;
+        if (jodaType == null) {
+            return null;
+        }
+        if (jodaType instanceof JavaType.Array) {
+            return ((JavaType.Array) jodaType).getElemType();
+        }
+        if (jodaType instanceof JavaType.Class) {
+            return jodaType;
+        }
         return null;
     }
 
     @Override
     public @NonNull J visitAssignment(@NonNull J.Assignment assignment, @NonNull ExecutionContext ctx) {
         J.Assignment a = (J.Assignment) super.visitAssignment(assignment, ctx);
-        if (!isJoda(a.getType())) return a;
-        if (!(a.getVariable() instanceof J.Identifier)) return a; //todo what is this check covering?
+        if (!isJoda(a.getType())) {
+            return a;
+        }
+        if (!(a.getVariable() instanceof J.Identifier)) {
+            return a; //todo what is this check covering?
+        }
 
         JavaType javaTimeType = timeClassMap.getJavaTimeType(a.getType());
-        if (javaTimeType == null) return a;
+        if (javaTimeType == null) {
+            return a;
+        }
 
-        return a.withType(javaTimeType) ;
+        return a.withType(javaTimeType);
     }
 
     @Override
@@ -190,7 +233,9 @@ class JodaTimeVisitor extends JavaVisitor<ExecutionContext> {
     @Override
     public @NonNull J visitMethodInvocation(@NonNull J.MethodInvocation method, @NonNull ExecutionContext ctx) {
         J.MethodInvocation m = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
-        if (method.getMethodType() == null) return m;
+        if (method.getMethodType() == null) {
+            return m;
+        }
 
         // internal method with Joda class as return type
         if (!isJoda(method.getMethodType().getDeclaringType()) &&
@@ -204,19 +249,27 @@ class JodaTimeVisitor extends JavaVisitor<ExecutionContext> {
     @Override
     public @NonNull J visitFieldAccess(@NonNull J.FieldAccess fieldAccess, @NonNull ExecutionContext ctx) {
         J.FieldAccess f = (J.FieldAccess) super.visitFieldAccess(fieldAccess, ctx);
-        if (isTypeAccess(f)) return f;
-        if (!isJoda(f.getType())) return f;
+        if (isTypeAccess(f)) {
+            return f;
+        }
+        if (!isJoda(f.getType())) {
+            return f;
+        }
 
         JavaType javaTimeType = timeClassMap.getJavaTimeType(f.getType());
-        if (javaTimeType == null) return f;
+        if (javaTimeType == null) {
+            return f;
+        }
 
         String javaTimeShortName = timeClassMap.getJavaTimeShortName(f.getType());
-        if (javaTimeShortName == null) return f;
+        if (javaTimeShortName == null) {
+            return f;
+        }
 
         J.Identifier fieldName = f.getName();
 
         JavaFieldTemplate fieldTemplate = AllTemplates.getFieldTemplate(f);
-        if(fieldTemplate != null) {
+        if (fieldTemplate != null) {
             javaTimeType = JavaType.buildType(fieldTemplate.getType());
             javaTimeShortName = fieldTemplate.getSimpleName();
             fieldName = fieldName.withSimpleName(fieldTemplate.getName());
@@ -231,45 +284,64 @@ class JodaTimeVisitor extends JavaVisitor<ExecutionContext> {
 
         return f.withType(javaTimeType).withName(fieldName).withTarget(target);
     }
-    private  boolean isTypeAccess(J.FieldAccess f) {
+
+    private boolean isTypeAccess(J.FieldAccess f) {
         return f.getName().getFieldType() == null;
     }
 
     @Override
     public @NonNull J visitIdentifier(@NonNull J.Identifier ident, @NonNull ExecutionContext ctx) {
         J.Identifier i = (J.Identifier) super.visitIdentifier(ident, ctx);
-        if (i.getFieldType() == null) return i;
-        if (!isJoda(i.getFieldType().getType())) return i;
+        if (i.getFieldType() == null) {
+            return i;
+        }
+        if (!isJoda(i.getFieldType().getType())) {
+            return i;
+        }
 
         JavaType type = i.getType();
-        if (type instanceof JavaType.Array) {return visitArrayIdentifier(i, ctx);}
-        if (type instanceof JavaType.Class) {return visitClassIdentifier(i, ctx);}
+        if (type instanceof JavaType.Array) {
+            return visitArrayIdentifier(i, ctx);
+        }
+        if (type instanceof JavaType.Class) {
+            return visitClassIdentifier(i, ctx);
+        }
 
         return i;
     }
+
     private @NonNull J visitArrayIdentifier(J.Identifier arrayIdentifier, @NonNull ExecutionContext ctx) {
-        JavaType.Array at = (JavaType.Array)arrayIdentifier.getType();
+        JavaType.Array at = (JavaType.Array) arrayIdentifier.getType();
         JavaType.Array javaTimeType = at.withElemType(timeClassMap.getJavaTimeType(at.getElemType()));
-        if (javaTimeType == null) return arrayIdentifier;
+        if (javaTimeType == null) {
+            return arrayIdentifier;
+        }
 
         return arrayIdentifier.withType(javaTimeType)
                 .withFieldType(arrayIdentifier.getFieldType().withType(javaTimeType));
     }
+
     private @NonNull J visitClassIdentifier(J.Identifier classIdentifier, @NonNull ExecutionContext ctx) {
         JavaType javaTimeType = timeClassMap.getJavaTimeType(classIdentifier.getType());
-        if (javaTimeType == null) return classIdentifier;
+        if (javaTimeType == null) {
+            return classIdentifier;
+        }
 
         return classIdentifier.withType(javaTimeType)
                 .withFieldType(classIdentifier.getFieldType().withType(javaTimeType));
     }
 
     @Override
-    public J visitArrayAccess(J.ArrayAccess arrayAccess, @NonNull ExecutionContext ctx){
+    public J visitArrayAccess(J.ArrayAccess arrayAccess, @NonNull ExecutionContext ctx) {
         J.ArrayAccess a = (J.ArrayAccess) super.visitArrayAccess(arrayAccess, ctx);
-        if (!isJoda(a.getType())) return a;
+        if (!isJoda(a.getType())) {
+            return a;
+        }
 
         JavaType javaTimeType = timeClassMap.getJavaTimeType(a.getType());
-        if (javaTimeType == null) return a;
+        if (javaTimeType == null) {
+            return a;
+        }
 
         return a.withType(javaTimeType);
     }
@@ -317,10 +389,9 @@ class JodaTimeVisitor extends JavaVisitor<ExecutionContext> {
         int parameterTypesSize = parameterTypes.size();
 
         //try to process method with variable arguments
-        if(argPos > parameterTypesSize)
-        {
+        if (argPos > parameterTypesSize) {
             //todo find better way to detect (...) in method arguments
-            if (parameterTypes.get(parameterTypesSize - 1).toString().endsWith("[]")){
+            if (parameterTypes.get(parameterTypesSize - 1).toString().endsWith("[]")) {
                 return updatedExpr;
             }
             return original;
@@ -351,9 +422,13 @@ class JodaTimeVisitor extends JavaVisitor<ExecutionContext> {
     }
 
     private boolean isJoda(JavaType type) {
-        if (type == null) return false;
+        if (type == null) {
+            return false;
+        }
 
-        if (type.isAssignableFrom(JODA_CLASS_PATTERN)) return true;
+        if (type.isAssignableFrom(JODA_CLASS_PATTERN)) {
+            return true;
+        }
 
         return false;
     }
