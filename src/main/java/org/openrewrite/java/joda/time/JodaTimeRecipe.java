@@ -31,15 +31,11 @@ import java.util.*;
 import static java.util.Collections.emptyList;
 
 public class JodaTimeRecipe extends ScanningRecipe<JodaTimeRecipe.Accumulator> {
-    @Override
-    public String getDisplayName() {
-        return "Migrate Joda-Time to Java time";
-    }
+    @Getter
+    final String displayName = "Migrate Joda-Time to Java time";
 
-    @Override
-    public String getDescription() {
-        return "Prefer the Java standard library over third-party usage of Joda Time.";
-    }
+    @Getter
+    final String description = "Prefer the Java standard library over third-party usage of Joda Time.";
 
     @Override
     public Accumulator getInitialValue(ExecutionContext ctx) {
