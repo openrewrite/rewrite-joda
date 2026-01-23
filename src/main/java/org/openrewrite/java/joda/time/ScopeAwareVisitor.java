@@ -44,7 +44,10 @@ class ScopeAwareVisitor extends JavaVisitor<ExecutionContext> {
             scopes.push(new VariablesInScope(getCursor()));
         }
         if (j instanceof J.VariableDeclarations.NamedVariable) {
-            assert !scopes.isEmpty();
+            if (scopes.isEmpty()) {
+                // Script-level variables in Groovy don't have a containing scope
+                return super.preVisit(j, ctx);
+            }
             NamedVariable variable = (NamedVariable) j;
             scopes.peek().variables.add(variable);
         }
