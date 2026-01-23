@@ -65,7 +65,7 @@ public class JodaTimeRecipe extends ScanningRecipe<JodaTimeRecipe.Accumulator> {
 
         public void addVars(J.MethodDeclaration methodDeclaration) {
             JavaType type = methodDeclaration.getMethodType();
-            assert type != null;
+            if (type != null) {
             methodDeclaration.getParameters().forEach(p -> {
                 if (!(p instanceof J.VariableDeclarations)) {
                     return;
@@ -73,6 +73,7 @@ public class JodaTimeRecipe extends ScanningRecipe<JodaTimeRecipe.Accumulator> {
                 J.VariableDeclarations.NamedVariable namedVariable = ((J.VariableDeclarations) p).getVariables().get(0);
                 vars.computeIfAbsent(type, k -> new ArrayList<>()).add(namedVariable);
             });
+            }
         }
 
         public @Nullable NamedVariable getVarByName(@Nullable JavaType declaringType, String varName) {
