@@ -127,6 +127,9 @@ class JodaTimeScanner extends ScopeAwareVisitor {
         List<Expression> sinks = findSinks(cursor);
 
         Cursor currentScope = getCurrentScope();
+        if (currentScope == null) {
+            return variable;
+        }
         new AddSafeCheckMarker(sinks).visit(currentScope.getValue(), ctx, currentScope.getParentOrThrow());
         processMarkersOnExpression(sinks, variable);
         return variable;
@@ -146,6 +149,9 @@ class JodaTimeScanner extends ScopeAwareVisitor {
         }
         NamedVariable variable = mayBeVar.get();
         Cursor varScope = findScope(variable);
+        if (varScope == null) {
+            return super.visitAssignment(assignment, ctx);
+        }
         List<Expression> sinks = findSinks(new Cursor(getCursor(), assignment.getAssignment()));
         new AddSafeCheckMarker(sinks).visit(varScope.getValue(), ctx, varScope.getParentOrThrow());
         processMarkersOnExpression(sinks, variable);
@@ -175,7 +181,8 @@ class JodaTimeScanner extends ScopeAwareVisitor {
 
     @Override
     public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-        if (!isJodaExpr(method) || method.getMethodType().getDeclaringType().isAssignableFrom(JODA_CLASS_PATTERN)) {
+        if (!isJodaExpr(method) || method.getMethodType() == null ||
+            method.getMethodType().getDeclaringType().isAssignableFrom(JODA_CLASS_PATTERN)) {
             return super.visitMethodInvocation(method, ctx);
         }
         Cursor boundary = findBoundaryCursorForJodaExpr(getCursor());
@@ -199,6 +206,9 @@ class JodaTimeScanner extends ScopeAwareVisitor {
         }
         if (parent instanceof MethodCall) {
             MethodCall parentMethod = (MethodCall) parent;
+            if (parentMethod.getMethodType() == null) {
+                return method;
+            }
             int argPos = parentMethod.getArguments().indexOf(boundary.getValue());
             if (argPos == -1) {
                 return method;
@@ -229,6 +239,9 @@ class JodaTimeScanner extends ScopeAwareVisitor {
             return _return;
         }
         J.MethodDeclaration method = (J.MethodDeclaration) methodOrLambda;
+        if (method.getMethodType() == null) {
+            return _return;
+        }
         Expression updatedExpr = (Expression) new JodaTimeVisitor(acc, true, scopes)
                 .visit(expr, ctx, getCursor().getParentTreeCursor());
         boolean isSafe = !isJodaExpr(updatedExpr);
@@ -236,7 +249,10 @@ class JodaTimeScanner extends ScopeAwareVisitor {
         addReferencedVars(expr, method.getMethodType());
         acc.getSafeMethodMap().compute(method.getMethodType(), (k, v) -> v == null ? isSafe : v && isSafe);
         if (!isSafe) {
-            acc.getUnsafeVars().addAll(methodReferencedVars.get(method.getMethodType()));
+            Set<NamedVariable> vars = methodReferencedVars.get(method.getMethodType());
+            if (vars != null) {
+                acc.getUnsafeVars().addAll(vars);
+            }
         }
         return _return;
     }
@@ -289,7 +305,8 @@ class JodaTimeScanner extends ScopeAwareVisitor {
     }
 
     private boolean isClassVar(NamedVariable variable) {
-        return variable.getVariableType().getOwner() instanceof JavaType.Class;
+        JavaType.Variable varType = variable.getVariableType();
+        return varType != null && varType.getOwner() instanceof JavaType.Class;
     }
 
     private void dfs(NamedVariable root, Set<NamedVariable> visited) {
@@ -326,9 +343,11 @@ class JodaTimeScanner extends ScopeAwareVisitor {
                 Optional<Cursor> mayBeArgCursor = findArgumentExprCursor();
                 if (mayBeArgCursor.isPresent()) {
                     MethodCall parentMethod = mayBeArgCursor.get().getParentTreeCursor().getValue();
-                    int argPos = parentMethod.getArguments().indexOf(mayBeArgCursor.get().getValue());
-                    String paramName = parentMethod.getMethodType().getParameterNames().get(argPos);
-                    unsafeVarsByType.computeIfAbsent(parentMethod.getMethodType(), k -> new HashSet<>()).add(paramName);
+                    if (parentMethod.getMethodType() != null) {
+                        int argPos = parentMethod.getArguments().indexOf(mayBeArgCursor.get().getValue());
+                        String paramName = parentMethod.getMethodType().getParameterNames().get(argPos);
+                        unsafeVarsByType.computeIfAbsent(parentMethod.getMethodType(), k -> new HashSet<>()).add(paramName);
+                    }
                 }
             }
             Expression withMarker = expression.withMarkers(expression.getMarkers().addIfAbsent(marker));

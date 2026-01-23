@@ -91,7 +91,8 @@ class JodaTimeVisitor extends ScopeAwareVisitor {
     @Override
     public @NonNull J visitMethodDeclaration(@NonNull J.MethodDeclaration method, @NonNull ExecutionContext ctx) {
         J.MethodDeclaration m = (J.MethodDeclaration) super.visitMethodDeclaration(method, ctx);
-        if (m.getReturnTypeExpression() == null || !m.getType().isAssignableFrom(JODA_CLASS_PATTERN)) {
+        if (m.getReturnTypeExpression() == null || m.getMethodType() == null ||
+            !m.getType().isAssignableFrom(JODA_CLASS_PATTERN)) {
             return m;
         }
         if (safeMigration && !acc.getSafeMethodMap().getOrDefault(m.getMethodType(), false)) {
@@ -207,7 +208,7 @@ class JodaTimeVisitor extends ScopeAwareVisitor {
 
         JavaType.FullyQualified jodaType = ((JavaType.Class) ident.getType());
         JavaType.FullyQualified fqType = TimeClassMap.getJavaTimeType(jodaType.getFullyQualifiedName());
-        if (fqType == null) {
+        if (fqType == null || ident.getFieldType() == null) {
             return ident;
         }
         return ident.withType(fqType)
@@ -232,7 +233,8 @@ class JodaTimeVisitor extends ScopeAwareVisitor {
         }
         // this expression is an argument to a method call
         MethodCall parentMethod = getCursor().getParentTreeCursor().getValue();
-        if (parentMethod.getMethodType().getDeclaringType().isAssignableFrom(JODA_CLASS_PATTERN)) {
+        if (parentMethod.getMethodType() == null ||
+            parentMethod.getMethodType().getDeclaringType().isAssignableFrom(JODA_CLASS_PATTERN)) {
             return updatedExpr;
         }
         int argPos = parentMethod.getArguments().indexOf(original);
@@ -249,6 +251,9 @@ class JodaTimeVisitor extends ScopeAwareVisitor {
     }
 
     private J.MethodInvocation migrateNonJodaMethod(J.MethodInvocation original, J.MethodInvocation updated) {
+        if (updated.getMethodType() == null) {
+            return original;
+        }
         if (safeMigration && !acc.getSafeMethodMap().getOrDefault(updated.getMethodType(), false)) {
             return original;
         }

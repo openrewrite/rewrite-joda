@@ -65,7 +65,10 @@ public class JodaTimeRecipe extends ScanningRecipe<JodaTimeRecipe.Accumulator> {
 
         public void addVars(J.MethodDeclaration methodDeclaration) {
             JavaType type = methodDeclaration.getMethodType();
-            assert type != null;
+            if (type == null) {
+                // Method type is not available in some non-Java source files (JS, Groovy, etc.)
+                return;
+            }
             methodDeclaration.getParameters().forEach(p -> {
                 if (!(p instanceof J.VariableDeclarations)) {
                     return;

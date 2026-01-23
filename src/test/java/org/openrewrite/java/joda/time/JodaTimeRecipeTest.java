@@ -505,4 +505,29 @@ class JodaTimeRecipeTest implements RewriteTest {
             )
         );
     }
+
+    @Test
+    void handlesSourcesWithMissingTypeInformation() {
+        // When running on sources without full type attribution (e.g., missing classpath),
+        // the recipe should gracefully skip rather than throw NPE or AssertionError.
+        // This simulates the scenario encountered with JS/Groovy files that lack type info.
+        rewriteRun(
+          spec -> spec
+            .parser(JavaParser.fromJavaVersion()) // no joda-time classpath
+            .typeValidationOptions(org.openrewrite.test.TypeValidation.none()),
+          //language=java
+          java(
+            """
+              import org.joda.time.DateTime;
+
+              class A {
+                  public void foo() {
+                      DateTime dt = new DateTime();
+                      System.out.println(dt.toString());
+                  }
+              }
+              """
+          )
+        );
+    }
 }

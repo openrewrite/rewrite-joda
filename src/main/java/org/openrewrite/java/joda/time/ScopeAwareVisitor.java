@@ -23,6 +23,8 @@ import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.J.VariableDeclarations.NamedVariable;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Optional;
@@ -45,7 +47,7 @@ class ScopeAwareVisitor extends JavaVisitor<ExecutionContext> {
         }
         if (j instanceof J.VariableDeclarations.NamedVariable) {
             if (scopes.isEmpty()) {
-                // Script-level variables in Groovy don't have a containing scope
+                // Variables in non-Java source files (JS, Groovy, etc.) may lack a containing scope
                 return super.preVisit(j, ctx);
             }
             NamedVariable variable = (NamedVariable) j;
@@ -89,9 +91,8 @@ class ScopeAwareVisitor extends JavaVisitor<ExecutionContext> {
         return Optional.empty();
     }
 
-    Cursor getCurrentScope() {
-        assert !scopes.isEmpty();
-        return scopes.peek().scope;
+    @Nullable Cursor getCurrentScope() {
+        return scopes.isEmpty() ? null : scopes.peek().scope;
     }
 
     @Value
