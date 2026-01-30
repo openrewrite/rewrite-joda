@@ -23,6 +23,8 @@ description: >-
   gap. With the release of Java 8, the `java.time` package was introduced, incorporating most of Joda-Time's concepts.
   Features deemed too specialized or bulky for `java.time` were included in the ThreeTen-Extra library.  This recipe
   migrates Joda-Time types to `java.time` and `threeten-extra` types.
+preconditions:
+  - org.openrewrite.Singleton
 tags:
   - joda-time
 recipeList:
