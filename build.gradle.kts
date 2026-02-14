@@ -17,10 +17,6 @@ dependencies {
     implementation("org.openrewrite.meta:rewrite-analysis:${rewriteVersion}")
     implementation("org.openrewrite.recipe:rewrite-java-dependencies:${rewriteVersion}")
 
-    implementation("org.slf4j:slf4j-api:2.0.12")
-
-    runtimeOnly("ch.qos.logback:logback-classic:1.5.12")
-
     testImplementation("org.openrewrite:rewrite-test")
     testImplementation("org.openrewrite:rewrite-maven")
     testImplementation("org.junit-pioneer:junit-pioneer:2.+")
