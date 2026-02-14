@@ -16,7 +16,6 @@
 package org.openrewrite.java.joda.time;
 
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.Value;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -31,10 +30,8 @@ import org.openrewrite.java.tree.J;
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class JodaDateTimeToJavaTime extends Recipe {
-    @Getter
     String displayName = "Migrate Joda-Time DateTime to java.time.ZonedDateTime";
 
-    @Getter
     String description = "Migrates Joda-Time `DateTime` constructors and instance methods to the equivalent `java.time.ZonedDateTime` calls.";
 
     // Constructor matchers

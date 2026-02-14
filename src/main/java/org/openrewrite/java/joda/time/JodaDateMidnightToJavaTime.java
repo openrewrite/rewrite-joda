@@ -16,7 +16,6 @@
 package org.openrewrite.java.joda.time;
 
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.Value;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -31,10 +30,8 @@ import org.openrewrite.java.tree.J;
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class JodaDateMidnightToJavaTime extends Recipe {
-    @Getter
     String displayName = "Migrate Joda-Time DateMidnight to Java time";
 
-    @Getter
     String description = "Migrates `org.joda.time.DateMidnight` constructor and `now()` calls to `java.time.LocalDate.now().atStartOfDay(...)`.";
 
     private static final MethodMatcher CONSTRUCTOR = new MethodMatcher("org.joda.time.DateMidnight <constructor>()");

@@ -16,7 +16,6 @@
 package org.openrewrite.java.joda.time;
 
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.Value;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -32,10 +31,8 @@ import org.openrewrite.java.tree.J;
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class JodaIntervalToJavaTime extends Recipe {
-    @Getter
     String displayName = "Migrate Joda-Time Interval to Java time";
 
-    @Getter
     String description = "Migrates `org.joda.time.Interval` constructors and methods to their Java time equivalents using ThreeTen-Extra.";
 
     // Constructors

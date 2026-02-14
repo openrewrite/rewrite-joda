@@ -16,7 +16,6 @@
 package org.openrewrite.java.joda.time;
 
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.Value;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -33,10 +32,8 @@ import org.openrewrite.java.tree.TypeUtils;
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class JodaDateTimeZoneToJavaTime extends Recipe {
-    @Getter
     String displayName = "Migrate Joda-Time DateTimeZone to Java time";
 
-    @Getter
     String description = "Migrates `org.joda.time.DateTimeZone` method calls to `java.time.ZoneOffset` and `java.time.ZoneId`.";
 
     private static final MethodMatcher FOR_OFFSET_HOURS = new MethodMatcher("org.joda.time.DateTimeZone forOffsetHours(int)");

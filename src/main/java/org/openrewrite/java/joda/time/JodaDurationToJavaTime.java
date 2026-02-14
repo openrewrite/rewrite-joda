@@ -16,7 +16,6 @@
 package org.openrewrite.java.joda.time;
 
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.Value;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -31,10 +30,8 @@ import org.openrewrite.java.tree.J;
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class JodaDurationToJavaTime extends Recipe {
-    @Getter
     String displayName = "Migrate Joda-Time Duration to Java time";
 
-    @Getter
     String description = "Migrates `org.joda.time.Duration` constructor and method calls to `java.time.Duration`.";
 
     private static final MethodMatcher NEW_DURATION = new MethodMatcher("org.joda.time.Duration <constructor>(long)");
