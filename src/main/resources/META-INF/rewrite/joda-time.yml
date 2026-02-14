@@ -117,12 +117,40 @@ recipeList:
       methodPattern: "org.joda.time.base.BaseDuration getMillis()"
       newMethodName: toMillis
       matchOverrides: true
+  # LocalDate accessors
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.LocalDate getMonthOfYear()"
+      newMethodName: getMonthValue
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.LocalDate withMonthOfYear(int)"
+      newMethodName: withMonth
+  # LocalTime accessors
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.LocalTime getHourOfDay()"
+      newMethodName: getHour
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.LocalTime getMinuteOfHour()"
+      newMethodName: getMinute
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.LocalTime getSecondOfMinute()"
+      newMethodName: getSecond
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.LocalTime withHourOfDay(int)"
+      newMethodName: withHour
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.LocalTime withMinuteOfHour(int)"
+      newMethodName: withMinute
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.LocalTime withSecondOfMinute(int)"
+      newMethodName: withSecond
 
   # Phase 2: Imperative recipes for structural transformations
   - org.openrewrite.java.joda.time.JodaDateTimeToJavaTime
   - org.openrewrite.java.joda.time.JodaAbstractInstantToJavaTime
   - org.openrewrite.java.joda.time.JodaDurationToJavaTime
   - org.openrewrite.java.joda.time.JodaIntervalToJavaTime
+  - org.openrewrite.java.joda.time.JodaLocalDateToJavaTime
+  - org.openrewrite.java.joda.time.JodaLocalTimeToJavaTime
   - org.openrewrite.java.joda.time.JodaFormatterToJavaTime
   - org.openrewrite.java.joda.time.JodaDateTimeZoneToJavaTime
   - org.openrewrite.java.joda.time.JodaDateMidnightToJavaTime
@@ -180,6 +208,15 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.joda.time.DateMidnight
       newFullyQualifiedTypeName: java.time.ZonedDateTime
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.joda.time.LocalDate
+      newFullyQualifiedTypeName: java.time.LocalDate
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.joda.time.LocalTime
+      newFullyQualifiedTypeName: java.time.LocalTime
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.joda.time.LocalDateTime
+      newFullyQualifiedTypeName: java.time.LocalDateTime
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
