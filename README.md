@@ -23,7 +23,9 @@
 
 ### What is this?
 
-This project implements a [Rewrite module](https://github.com/openrewrite/rewrite) for Joda-Time.
+This project implements a [Rewrite module](https://github.com/openrewrite/rewrite) that automatically migrates [Joda-Time](https://www.joda.org/joda-time/) usage to the `java.time` standard library and [ThreeTen-Extra](https://www.threeten.org/threeten-extra/).
+
+It handles migration of `DateTime`, `LocalDate`, `LocalTime`, `LocalDateTime`, `Instant`, `Duration`, `Interval`, `DateTimeZone`, `DateMidnight`, and related formatter classes.
 
 ## Contributing
 

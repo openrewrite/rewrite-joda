@@ -18,6 +18,7 @@ package org.openrewrite.java.joda.time;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -59,7 +60,7 @@ public class JodaIntervalToJavaTime extends Recipe {
                     maybeAddImport("java.time.Instant");
                     maybeAddImport("org.threeten.extra.Interval");
                     return JavaTemplate.builder("Interval.of(Instant.ofEpochMilli(#{any(long)}), Instant.ofEpochMilli(#{any(long)}))")
-                            .javaParser(JavaParser.fromJavaVersion().classpath("threeten-extra"))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "threeten-extra-1"))
                             .imports("java.time.Instant", "org.threeten.extra.Interval").build()
                             .apply(getCursor(), nc.getCoordinates().replace(),
                                     nc.getArguments().get(0), nc.getArguments().get(1));
@@ -67,7 +68,7 @@ public class JodaIntervalToJavaTime extends Recipe {
                 if (NEW_INTERVAL_RI_RI.matches(newClass)) {
                     maybeAddImport("org.threeten.extra.Interval");
                     return JavaTemplate.builder("Interval.of(#{any(java.time.ZonedDateTime)}.toInstant(), #{any(java.time.ZonedDateTime)}.toInstant())")
-                            .javaParser(JavaParser.fromJavaVersion().classpath("threeten-extra"))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "threeten-extra-1"))
                             .imports("org.threeten.extra.Interval").build()
                             .apply(getCursor(), nc.getCoordinates().replace(),
                                     nc.getArguments().get(0), nc.getArguments().get(1));
@@ -75,7 +76,7 @@ public class JodaIntervalToJavaTime extends Recipe {
                 if (NEW_INTERVAL_RI_RD.matches(newClass)) {
                     maybeAddImport("org.threeten.extra.Interval");
                     return JavaTemplate.builder("Interval.of(#{any(java.time.ZonedDateTime)}.toInstant(), #{any(java.time.Duration)})")
-                            .javaParser(JavaParser.fromJavaVersion().classpath("threeten-extra"))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "threeten-extra-1"))
                             .imports("org.threeten.extra.Interval").build()
                             .apply(getCursor(), nc.getCoordinates().replace(),
                                     nc.getArguments().get(0), nc.getArguments().get(1));
@@ -89,38 +90,38 @@ public class JodaIntervalToJavaTime extends Recipe {
                 if (GET_START.matches(method)) {
                     maybeAddImport("java.time.ZoneId");
                     return JavaTemplate.builder("#{any(org.threeten.extra.Interval)}.getStart().atZone(ZoneId.systemDefault())")
-                            .javaParser(JavaParser.fromJavaVersion().classpath("threeten-extra"))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "threeten-extra-1"))
                             .imports("java.time.ZoneId").build()
                             .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }
                 if (GET_END.matches(method)) {
                     maybeAddImport("java.time.ZoneId");
                     return JavaTemplate.builder("#{any(org.threeten.extra.Interval)}.getEnd().atZone(ZoneId.systemDefault())")
-                            .javaParser(JavaParser.fromJavaVersion().classpath("threeten-extra"))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "threeten-extra-1"))
                             .imports("java.time.ZoneId").build()
                             .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }
                 if (TO_DURATION_MILLIS.matches(method)) {
                     return JavaTemplate.builder("#{any(org.threeten.extra.Interval)}.toDuration().toMillis()")
-                            .javaParser(JavaParser.fromJavaVersion().classpath("threeten-extra")).build()
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "threeten-extra-1")).build()
                             .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }
                 if (CONTAINS.matches(method)) {
                     maybeAddImport("java.time.Instant");
                     return JavaTemplate.builder("#{any(org.threeten.extra.Interval)}.contains(Instant.ofEpochMilli(#{any(long)}))")
-                            .javaParser(JavaParser.fromJavaVersion().classpath("threeten-extra"))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "threeten-extra-1"))
                             .imports("java.time.Instant").build()
                             .apply(getCursor(), m.getCoordinates().replace(),
                                     m.getSelect(), m.getArguments().get(0));
                 }
                 if (GET_START_MILLIS.matches(method)) {
                     return JavaTemplate.builder("#{any(org.threeten.extra.Interval)}.getStart().toEpochMilli()")
-                            .javaParser(JavaParser.fromJavaVersion().classpath("threeten-extra")).build()
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "threeten-extra-1")).build()
                             .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }
                 if (GET_END_MILLIS.matches(method)) {
                     return JavaTemplate.builder("#{any(org.threeten.extra.Interval)}.getEnd().toEpochMilli()")
-                            .javaParser(JavaParser.fromJavaVersion().classpath("threeten-extra")).build()
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "threeten-extra-1")).build()
                             .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }
                 return m;

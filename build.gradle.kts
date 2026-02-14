@@ -24,7 +24,8 @@ dependencies {
     testRuntimeOnly("org.threeten:threeten-extra:1.8.0")
 }
 
-tasks.test {
-    minHeapSize = "512m"
-    maxHeapSize = "4g"
+recipeDependencies {
+    parserClasspath("joda-time:joda-time:2.12.3")
+    parserClasspath("org.threeten:threeten-extra:1.8.0")
 }
+
