@@ -180,7 +180,7 @@ class JodaTimeRecipeTest implements RewriteTest {
 
               class A {
                   public void foo(String city) {
-                      ZoneId dtz;
+                     ZoneId dtz;
                       if ("london".equals(city)) {
                           dtz = ZoneId.of("Europe/London");
                       } else {
