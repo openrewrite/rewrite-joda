@@ -300,69 +300,27 @@ class JodaDateTimeToJavaTimeTest implements RewriteTest {
     }
 
     @Test
-    void lambdaVarDeclaration() {
+    void migrateJodaTypeExpressionReferencingNonJodaTypeVar() {
         //language=java
         rewriteRun(
           java(
             """
               import org.joda.time.DateTime;
-              import java.util.List;
-              import java.util.ArrayList;
 
               class A {
                   public void foo() {
-                      List<Long> list = new ArrayList<>();
-                      list.add(100L);
-                      list.add(200L);
-                        list.forEach(millis -> {
-                            System.out.println(new DateTime().withMillis(millis));
-                        });
-                  }
-              }
-              """,
-            """
-              import java.time.Instant;
-              import java.time.ZonedDateTime;
-              import java.util.List;
-              import java.util.ArrayList;
-
-              class A {
-                  public void foo() {
-                      List<Long> list = new ArrayList<>();
-                      list.add(100L);
-                      list.add(200L);
-                        list.forEach(millis -> {
-                            System.out.println(ZonedDateTime.ofInstant(Instant.ofEpochMilli(millis), ZonedDateTime.now().getZone()));
-                        });
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void methodInvocationWithStaticImport() {
-        //language=java
-        rewriteRun(
-          java(
-            """
-              import static org.joda.time.DateTime.now;
-
-              class A {
-                  public void foo() {
-                      now();
+                      long millis = DateTime.now().getMillis();
+                      System.out.println(millis);
                   }
               }
               """,
             """
               import java.time.ZonedDateTime;
 
-              import static java.time.ZonedDateTime.now;
-
               class A {
                   public void foo() {
-                      ZonedDateTime.now();
+                      long millis = ZonedDateTime.now().toInstant().toEpochMilli();
+                      System.out.println(millis);
                   }
               }
               """

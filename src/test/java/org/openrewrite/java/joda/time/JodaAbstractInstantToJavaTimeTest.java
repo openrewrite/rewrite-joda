@@ -136,32 +136,4 @@ class JodaAbstractInstantToJavaTimeTest implements RewriteTest {
         );
     }
 
-    @Test
-    void migrateJodaTypeExpressionReferencingNonJodaTypeVar() {
-        //language=java
-        rewriteRun(
-          java(
-            """
-              import org.joda.time.DateTime;
-
-              class A {
-                  public void foo() {
-                      long millis = DateTime.now().getMillis();
-                      System.out.println(millis);
-                  }
-              }
-              """,
-            """
-              import java.time.ZonedDateTime;
-
-              class A {
-                  public void foo() {
-                      long millis = ZonedDateTime.now().toInstant().toEpochMilli();
-                      System.out.println(millis);
-                  }
-              }
-              """
-          )
-        );
-    }
 }
