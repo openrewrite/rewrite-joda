@@ -30,7 +30,7 @@ class JodaDateMidnightToJavaTimeTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-          .recipeFromResource("/META-INF/rewrite/joda-time.yml", "org.openrewrite.java.joda.time.JodaTimeRecipe")
+          .recipeFromResource("/META-INF/rewrite/no-joda-time.yml", "org.openrewrite.java.joda.time.JodaTimeRecipe")
           .parser(JavaParser.fromJavaVersion().classpath("joda-time", "threeten-extra"));
     }
 
