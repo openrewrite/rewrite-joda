@@ -54,59 +54,34 @@ public class JodaIntervalToJavaTime extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        JavaTemplate INTERVAL_OF_LONGS = JavaTemplate
-                .builder("Interval.of(Instant.ofEpochMilli(#{any(long)}), Instant.ofEpochMilli(#{any(long)}))")
-                .javaParser(JavaParser.fromJavaVersion().classpath("threeten-extra"))
-                .imports("java.time.Instant", "org.threeten.extra.Interval").build();
-        JavaTemplate INTERVAL_OF_RI = JavaTemplate
-                .builder("Interval.of(#{any(java.time.ZonedDateTime)}.toInstant(), #{any(java.time.ZonedDateTime)}.toInstant())")
-                .javaParser(JavaParser.fromJavaVersion().classpath("threeten-extra"))
-                .imports("org.threeten.extra.Interval").build();
-        JavaTemplate INTERVAL_OF_RI_RD = JavaTemplate
-                .builder("Interval.of(#{any(java.time.ZonedDateTime)}.toInstant(), #{any(java.time.Duration)})")
-                .javaParser(JavaParser.fromJavaVersion().classpath("threeten-extra"))
-                .imports("org.threeten.extra.Interval").build();
-        JavaTemplate GET_START_T = JavaTemplate
-                .builder("#{any(org.threeten.extra.Interval)}.getStart().atZone(ZoneId.systemDefault())")
-                .javaParser(JavaParser.fromJavaVersion().classpath("threeten-extra"))
-                .imports("java.time.ZoneId").build();
-        JavaTemplate GET_END_T = JavaTemplate
-                .builder("#{any(org.threeten.extra.Interval)}.getEnd().atZone(ZoneId.systemDefault())")
-                .javaParser(JavaParser.fromJavaVersion().classpath("threeten-extra"))
-                .imports("java.time.ZoneId").build();
-        JavaTemplate TO_DURATION_MILLIS_T = JavaTemplate
-                .builder("#{any(org.threeten.extra.Interval)}.toDuration().toMillis()")
-                .javaParser(JavaParser.fromJavaVersion().classpath("threeten-extra")).build();
-        JavaTemplate CONTAINS_T = JavaTemplate
-                .builder("#{any(org.threeten.extra.Interval)}.contains(Instant.ofEpochMilli(#{any(long)}))")
-                .javaParser(JavaParser.fromJavaVersion().classpath("threeten-extra"))
-                .imports("java.time.Instant").build();
-        JavaTemplate GET_START_MILLIS_T = JavaTemplate
-                .builder("#{any(org.threeten.extra.Interval)}.getStart().toEpochMilli()")
-                .javaParser(JavaParser.fromJavaVersion().classpath("threeten-extra")).build();
-        JavaTemplate GET_END_MILLIS_T = JavaTemplate
-                .builder("#{any(org.threeten.extra.Interval)}.getEnd().toEpochMilli()")
-                .javaParser(JavaParser.fromJavaVersion().classpath("threeten-extra")).build();
-
-        JavaVisitor<ExecutionContext> visitor = new JavaVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesType<>("org.joda.time.*Interval*", true), new JavaVisitor<ExecutionContext>() {
             @Override
             public J visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
                 J.NewClass nc = (J.NewClass) super.visitNewClass(newClass, ctx);
                 if (NEW_INTERVAL_LONGS.matches(newClass) || NEW_INTERVAL_LONGS_ZONE.matches(newClass)) {
                     maybeAddImport("java.time.Instant");
                     maybeAddImport("org.threeten.extra.Interval");
-                    return INTERVAL_OF_LONGS.apply(getCursor(), nc.getCoordinates().replace(),
-                            nc.getArguments().get(0), nc.getArguments().get(1));
+                    return JavaTemplate.builder("Interval.of(Instant.ofEpochMilli(#{any(long)}), Instant.ofEpochMilli(#{any(long)}))")
+                            .javaParser(JavaParser.fromJavaVersion().classpath("threeten-extra"))
+                            .imports("java.time.Instant", "org.threeten.extra.Interval").build()
+                            .apply(getCursor(), nc.getCoordinates().replace(),
+                                    nc.getArguments().get(0), nc.getArguments().get(1));
                 }
                 if (NEW_INTERVAL_RI_RI.matches(newClass)) {
                     maybeAddImport("org.threeten.extra.Interval");
-                    return INTERVAL_OF_RI.apply(getCursor(), nc.getCoordinates().replace(),
-                            nc.getArguments().get(0), nc.getArguments().get(1));
+                    return JavaTemplate.builder("Interval.of(#{any(java.time.ZonedDateTime)}.toInstant(), #{any(java.time.ZonedDateTime)}.toInstant())")
+                            .javaParser(JavaParser.fromJavaVersion().classpath("threeten-extra"))
+                            .imports("org.threeten.extra.Interval").build()
+                            .apply(getCursor(), nc.getCoordinates().replace(),
+                                    nc.getArguments().get(0), nc.getArguments().get(1));
                 }
                 if (NEW_INTERVAL_RI_RD.matches(newClass)) {
                     maybeAddImport("org.threeten.extra.Interval");
-                    return INTERVAL_OF_RI_RD.apply(getCursor(), nc.getCoordinates().replace(),
-                            nc.getArguments().get(0), nc.getArguments().get(1));
+                    return JavaTemplate.builder("Interval.of(#{any(java.time.ZonedDateTime)}.toInstant(), #{any(java.time.Duration)})")
+                            .javaParser(JavaParser.fromJavaVersion().classpath("threeten-extra"))
+                            .imports("org.threeten.extra.Interval").build()
+                            .apply(getCursor(), nc.getCoordinates().replace(),
+                                    nc.getArguments().get(0), nc.getArguments().get(1));
                 }
                 return nc;
             }
@@ -116,29 +91,43 @@ public class JodaIntervalToJavaTime extends Recipe {
                 J.MethodInvocation m = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                 if (GET_START.matches(method)) {
                     maybeAddImport("java.time.ZoneId");
-                    return GET_START_T.apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
+                    return JavaTemplate.builder("#{any(org.threeten.extra.Interval)}.getStart().atZone(ZoneId.systemDefault())")
+                            .javaParser(JavaParser.fromJavaVersion().classpath("threeten-extra"))
+                            .imports("java.time.ZoneId").build()
+                            .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }
                 if (GET_END.matches(method)) {
                     maybeAddImport("java.time.ZoneId");
-                    return GET_END_T.apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
+                    return JavaTemplate.builder("#{any(org.threeten.extra.Interval)}.getEnd().atZone(ZoneId.systemDefault())")
+                            .javaParser(JavaParser.fromJavaVersion().classpath("threeten-extra"))
+                            .imports("java.time.ZoneId").build()
+                            .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }
                 if (TO_DURATION_MILLIS.matches(method)) {
-                    return TO_DURATION_MILLIS_T.apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
+                    return JavaTemplate.builder("#{any(org.threeten.extra.Interval)}.toDuration().toMillis()")
+                            .javaParser(JavaParser.fromJavaVersion().classpath("threeten-extra")).build()
+                            .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }
                 if (CONTAINS.matches(method)) {
                     maybeAddImport("java.time.Instant");
-                    return CONTAINS_T.apply(getCursor(), m.getCoordinates().replace(),
-                            m.getSelect(), m.getArguments().get(0));
+                    return JavaTemplate.builder("#{any(org.threeten.extra.Interval)}.contains(Instant.ofEpochMilli(#{any(long)}))")
+                            .javaParser(JavaParser.fromJavaVersion().classpath("threeten-extra"))
+                            .imports("java.time.Instant").build()
+                            .apply(getCursor(), m.getCoordinates().replace(),
+                                    m.getSelect(), m.getArguments().get(0));
                 }
                 if (GET_START_MILLIS.matches(method)) {
-                    return GET_START_MILLIS_T.apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
+                    return JavaTemplate.builder("#{any(org.threeten.extra.Interval)}.getStart().toEpochMilli()")
+                            .javaParser(JavaParser.fromJavaVersion().classpath("threeten-extra")).build()
+                            .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }
                 if (GET_END_MILLIS.matches(method)) {
-                    return GET_END_MILLIS_T.apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
+                    return JavaTemplate.builder("#{any(org.threeten.extra.Interval)}.getEnd().toEpochMilli()")
+                            .javaParser(JavaParser.fromJavaVersion().classpath("threeten-extra")).build()
+                            .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }
                 return m;
             }
-        };
-        return Preconditions.check(new UsesType<>("org.joda.time.*Interval*", true), visitor);
+        });
     }
 }

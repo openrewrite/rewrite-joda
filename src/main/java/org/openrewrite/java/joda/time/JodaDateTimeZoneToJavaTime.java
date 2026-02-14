@@ -45,28 +45,27 @@ public class JodaDateTimeZoneToJavaTime extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        JavaTemplate OFFSET_HOURS = JavaTemplate.builder("ZoneOffset.ofHours(#{any(int)})")
-                .imports("java.time.ZoneOffset").build();
-        JavaTemplate OFFSET_HOURS_MINUTES = JavaTemplate.builder("ZoneOffset.ofHoursMinutes(#{any(int)}, #{any(int)})")
-                .imports("java.time.ZoneOffset").build();
-        JavaTemplate TO_ZONE_ID = JavaTemplate.builder("#{any(java.util.TimeZone)}.toZoneId()").build();
-
-        JavaVisitor<ExecutionContext> visitor = new JavaVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesType<>("org.joda.time.DateTimeZone", true), new JavaVisitor<ExecutionContext>() {
             @Override
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation m = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                 if (FOR_OFFSET_HOURS.matches(method)) {
                     maybeAddImport("java.time.ZoneOffset");
-                    return OFFSET_HOURS.apply(getCursor(), m.getCoordinates().replace(), m.getArguments().get(0));
+                    return JavaTemplate.builder("ZoneOffset.ofHours(#{any(int)})")
+                            .imports("java.time.ZoneOffset").build()
+                            .apply(getCursor(), m.getCoordinates().replace(), m.getArguments().get(0));
                 }
                 if (FOR_OFFSET_HOURS_MINUTES.matches(method)) {
                     maybeAddImport("java.time.ZoneOffset");
-                    return OFFSET_HOURS_MINUTES.apply(getCursor(), m.getCoordinates().replace(),
-                            m.getArguments().get(0), m.getArguments().get(1));
+                    return JavaTemplate.builder("ZoneOffset.ofHoursMinutes(#{any(int)}, #{any(int)})")
+                            .imports("java.time.ZoneOffset").build()
+                            .apply(getCursor(), m.getCoordinates().replace(),
+                                    m.getArguments().get(0), m.getArguments().get(1));
                 }
                 if (FOR_TIMEZONE.matches(method)) {
                     maybeAddImport("java.time.ZoneId");
-                    return TO_ZONE_ID.apply(getCursor(), m.getCoordinates().replace(), m.getArguments().get(0));
+                    return JavaTemplate.builder("#{any(java.util.TimeZone)}.toZoneId()").build()
+                            .apply(getCursor(), m.getCoordinates().replace(), m.getArguments().get(0));
                 }
                 return m;
             }
@@ -85,7 +84,6 @@ public class JodaDateTimeZoneToJavaTime extends Recipe {
                 }
                 return f;
             }
-        };
-        return Preconditions.check(new UsesType<>("org.joda.time.DateTimeZone", true), visitor);
+        });
     }
 }

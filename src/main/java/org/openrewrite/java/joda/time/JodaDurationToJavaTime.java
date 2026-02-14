@@ -48,29 +48,23 @@ public class JodaDurationToJavaTime extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        JavaTemplate OF_MILLIS = JavaTemplate.builder("Duration.ofMillis(#{any(long)})")
-                .imports("java.time.Duration").build();
-        JavaTemplate BETWEEN = JavaTemplate.builder("Duration.between(Instant.ofEpochMilli(#{any(long)}), Instant.ofEpochMilli(#{any(long)}))")
-                .imports("java.time.Duration", "java.time.Instant").build();
-        JavaTemplate IDENTITY = JavaTemplate.builder("#{any(java.time.Duration)}").build();
-        JavaTemplate WITH_DURATION_ADDED_LONG_T = JavaTemplate.builder("#{any(java.time.Duration)}.plusMillis(#{any(long)} * #{any(int)})").build();
-        JavaTemplate WITH_DURATION_ADDED_RD_T = JavaTemplate.builder("#{any(java.time.Duration)}.plus(#{any(java.time.Duration)}.multipliedBy(#{any(int)}))").build();
-        JavaTemplate PLUS_MILLIS_T = JavaTemplate.builder("#{any(java.time.Duration)}.plusMillis(#{any(long)})").build();
-        JavaTemplate MINUS_MILLIS_T = JavaTemplate.builder("#{any(java.time.Duration)}.minusMillis(#{any(long)})").build();
-
-        JavaVisitor<ExecutionContext> visitor = new JavaVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesType<>("org.joda.time.Duration", true), new JavaVisitor<ExecutionContext>() {
             @Override
             public J visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
                 J.NewClass nc = (J.NewClass) super.visitNewClass(newClass, ctx);
                 if (NEW_DURATION.matches(newClass)) {
                     maybeAddImport("java.time.Duration");
-                    return OF_MILLIS.apply(getCursor(), nc.getCoordinates().replace(), nc.getArguments().get(0));
+                    return JavaTemplate.builder("Duration.ofMillis(#{any(long)})")
+                            .imports("java.time.Duration").build()
+                            .apply(getCursor(), nc.getCoordinates().replace(), nc.getArguments().get(0));
                 }
                 if (NEW_DURATION_BETWEEN.matches(newClass)) {
                     maybeAddImport("java.time.Duration");
                     maybeAddImport("java.time.Instant");
-                    return BETWEEN.apply(getCursor(), nc.getCoordinates().replace(),
-                            nc.getArguments().get(0), nc.getArguments().get(1));
+                    return JavaTemplate.builder("Duration.between(Instant.ofEpochMilli(#{any(long)}), Instant.ofEpochMilli(#{any(long)}))")
+                            .imports("java.time.Duration", "java.time.Instant").build()
+                            .apply(getCursor(), nc.getCoordinates().replace(),
+                                    nc.getArguments().get(0), nc.getArguments().get(1));
                 }
                 return nc;
             }
@@ -79,31 +73,37 @@ public class JodaDurationToJavaTime extends Recipe {
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation m = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                 if (TO_DURATION.matches(method)) {
-                    return IDENTITY.apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
+                    return JavaTemplate.builder("#{any(java.time.Duration)}").build()
+                            .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }
                 if (WITH_MILLIS.matches(method)) {
                     maybeAddImport("java.time.Duration");
-                    return OF_MILLIS.apply(getCursor(), m.getCoordinates().replace(), m.getArguments().get(0));
+                    return JavaTemplate.builder("Duration.ofMillis(#{any(long)})")
+                            .imports("java.time.Duration").build()
+                            .apply(getCursor(), m.getCoordinates().replace(), m.getArguments().get(0));
                 }
                 if (WITH_DURATION_ADDED_LONG.matches(method)) {
-                    return WITH_DURATION_ADDED_LONG_T.apply(getCursor(), m.getCoordinates().replace(),
-                            m.getSelect(), m.getArguments().get(0), m.getArguments().get(1));
+                    return JavaTemplate.builder("#{any(java.time.Duration)}.plusMillis(#{any(long)} * #{any(int)})").build()
+                            .apply(getCursor(), m.getCoordinates().replace(),
+                                    m.getSelect(), m.getArguments().get(0), m.getArguments().get(1));
                 }
                 if (WITH_DURATION_ADDED_RD.matches(method)) {
-                    return WITH_DURATION_ADDED_RD_T.apply(getCursor(), m.getCoordinates().replace(),
-                            m.getSelect(), m.getArguments().get(0), m.getArguments().get(1));
+                    return JavaTemplate.builder("#{any(java.time.Duration)}.plus(#{any(java.time.Duration)}.multipliedBy(#{any(int)}))").build()
+                            .apply(getCursor(), m.getCoordinates().replace(),
+                                    m.getSelect(), m.getArguments().get(0), m.getArguments().get(1));
                 }
                 if (PLUS_LONG.matches(method)) {
-                    return PLUS_MILLIS_T.apply(getCursor(), m.getCoordinates().replace(),
-                            m.getSelect(), m.getArguments().get(0));
+                    return JavaTemplate.builder("#{any(java.time.Duration)}.plusMillis(#{any(long)})").build()
+                            .apply(getCursor(), m.getCoordinates().replace(),
+                                    m.getSelect(), m.getArguments().get(0));
                 }
                 if (MINUS_LONG.matches(method)) {
-                    return MINUS_MILLIS_T.apply(getCursor(), m.getCoordinates().replace(),
-                            m.getSelect(), m.getArguments().get(0));
+                    return JavaTemplate.builder("#{any(java.time.Duration)}.minusMillis(#{any(long)})").build()
+                            .apply(getCursor(), m.getCoordinates().replace(),
+                                    m.getSelect(), m.getArguments().get(0));
                 }
                 return m;
             }
-        };
-        return Preconditions.check(new UsesType<>("org.joda.time.Duration", true), visitor);
+        });
     }
 }

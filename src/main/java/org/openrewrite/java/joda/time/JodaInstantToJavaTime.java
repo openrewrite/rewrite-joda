@@ -41,21 +41,19 @@ public class JodaInstantToJavaTime extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        JavaTemplate NOW = JavaTemplate.builder("Instant.now()")
-                .imports("java.time.Instant")
-                .build();
-
-        JavaVisitor<ExecutionContext> visitor = new JavaVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesType<>("org.joda.time.Instant", true), new JavaVisitor<ExecutionContext>() {
             @Override
             public J visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
                 J.NewClass nc = (J.NewClass) super.visitNewClass(newClass, ctx);
                 if (CONSTRUCTOR.matches(newClass)) {
                     maybeAddImport("java.time.Instant");
-                    return NOW.apply(getCursor(), nc.getCoordinates().replace());
+                    return JavaTemplate.builder("Instant.now()")
+                            .imports("java.time.Instant")
+                            .build()
+                            .apply(getCursor(), nc.getCoordinates().replace());
                 }
                 return nc;
             }
-        };
-        return Preconditions.check(new UsesType<>("org.joda.time.Instant", true), visitor);
+        });
     }
 }

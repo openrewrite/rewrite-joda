@@ -42,12 +42,7 @@ public class JodaDateMidnightToJavaTime extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        JavaTemplate AT_START_OF_DAY = JavaTemplate
-                .builder("LocalDate.now().atStartOfDay(ZoneOffset.of(ZoneId.systemDefault().getId()))")
-                .imports("java.time.LocalDate", "java.time.ZoneOffset", "java.time.ZoneId")
-                .build();
-
-        JavaVisitor<ExecutionContext> visitor = new JavaVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesType<>("org.joda.time.DateMidnight", true), new JavaVisitor<ExecutionContext>() {
             @Override
             public J visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
                 J.NewClass nc = (J.NewClass) super.visitNewClass(newClass, ctx);
@@ -55,7 +50,11 @@ public class JodaDateMidnightToJavaTime extends Recipe {
                     maybeAddImport("java.time.LocalDate");
                     maybeAddImport("java.time.ZoneOffset");
                     maybeAddImport("java.time.ZoneId");
-                    return AT_START_OF_DAY.apply(getCursor(), nc.getCoordinates().replace());
+                    return JavaTemplate
+                            .builder("LocalDate.now().atStartOfDay(ZoneOffset.of(ZoneId.systemDefault().getId()))")
+                            .imports("java.time.LocalDate", "java.time.ZoneOffset", "java.time.ZoneId")
+                            .build()
+                            .apply(getCursor(), nc.getCoordinates().replace());
                 }
                 return nc;
             }
@@ -67,11 +66,14 @@ public class JodaDateMidnightToJavaTime extends Recipe {
                     maybeAddImport("java.time.LocalDate");
                     maybeAddImport("java.time.ZoneOffset");
                     maybeAddImport("java.time.ZoneId");
-                    return AT_START_OF_DAY.apply(getCursor(), m.getCoordinates().replace());
+                    return JavaTemplate
+                            .builder("LocalDate.now().atStartOfDay(ZoneOffset.of(ZoneId.systemDefault().getId()))")
+                            .imports("java.time.LocalDate", "java.time.ZoneOffset", "java.time.ZoneId")
+                            .build()
+                            .apply(getCursor(), m.getCoordinates().replace());
                 }
                 return m;
             }
-        };
-        return Preconditions.check(new UsesType<>("org.joda.time.DateMidnight", true), visitor);
+        });
     }
 }

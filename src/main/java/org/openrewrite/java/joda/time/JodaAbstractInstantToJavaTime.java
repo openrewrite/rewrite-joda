@@ -54,91 +54,76 @@ public class JodaAbstractInstantToJavaTime extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        // DateTime context templates
-        JavaTemplate IS_AFTER_LONG_DT = JavaTemplate
-                .builder("#{any(java.time.ZonedDateTime)}.isAfter(Instant.ofEpochMilli(#{any(long)}).atZone(ZoneId.systemDefault()))")
-                .imports("java.time.Instant", "java.time.ZoneId").build();
-        JavaTemplate IS_BEFORE_LONG_DT = JavaTemplate
-                .builder("#{any(java.time.ZonedDateTime)}.isBefore(Instant.ofEpochMilli(#{any(long)}).atZone(ZoneId.systemDefault()))")
-                .imports("java.time.Instant", "java.time.ZoneId").build();
-        // Instant context templates
-        JavaTemplate IS_AFTER_LONG_INST = JavaTemplate
-                .builder("#{any(java.time.Instant)}.isAfter(Instant.ofEpochMilli(#{any(long)}))")
-                .imports("java.time.Instant").build();
-        JavaTemplate IS_BEFORE_LONG_INST = JavaTemplate
-                .builder("#{any(java.time.Instant)}.isBefore(Instant.ofEpochMilli(#{any(long)}))")
-                .imports("java.time.Instant").build();
-        // Common templates
-        JavaTemplate IS_BEFORE_NOW_T = JavaTemplate
-                .builder("#{any(java.time.ZonedDateTime)}.isBefore(ZonedDateTime.now())")
-                .imports("java.time.ZonedDateTime").build();
-        JavaTemplate IS_EQUAL_LONG_T = JavaTemplate
-                .builder("#{any(java.time.ZonedDateTime)}.isEqual(Instant.ofEpochMilli(#{any(long)}).atZone(ZoneId.systemDefault()))")
-                .imports("java.time.Instant", "java.time.ZoneId").build();
-        JavaTemplate TO_DATE_T = JavaTemplate
-                .builder("Date.from(#{any(java.time.ZonedDateTime)}.toInstant())")
-                .imports("java.util.Date").build();
-        JavaTemplate TO_STRING_FORMATTER_T = JavaTemplate
-                .builder("#{any(java.time.ZonedDateTime)}.format(#{any(java.time.format.DateTimeFormatter)})")
-                .build();
-        JavaTemplate TO_INSTANT_T = JavaTemplate
-                .builder("#{any(java.time.ZonedDateTime)}.toInstant()").build();
-        JavaTemplate GET_MILLIS_T = JavaTemplate
-                .builder("#{any(java.time.ZonedDateTime)}.toInstant().toEpochMilli()").build();
-
-        JavaVisitor<ExecutionContext> visitor = new JavaVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesType<>("org.joda.time.*", true), new JavaVisitor<ExecutionContext>() {
             @Override
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation m = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                 if (IS_AFTER_LONG.matches(method)) {
                     if (isInstantType(method.getSelect())) {
                         maybeAddImport("java.time.Instant");
-                        return IS_AFTER_LONG_INST.apply(getCursor(), m.getCoordinates().replace(),
-                                m.getSelect(), m.getArguments().get(0));
+                        return JavaTemplate.builder("#{any(java.time.Instant)}.isAfter(Instant.ofEpochMilli(#{any(long)}))")
+                                .imports("java.time.Instant").build()
+                                .apply(getCursor(), m.getCoordinates().replace(),
+                                        m.getSelect(), m.getArguments().get(0));
                     }
                     maybeAddImport("java.time.Instant");
                     maybeAddImport("java.time.ZoneId");
-                    return IS_AFTER_LONG_DT.apply(getCursor(), m.getCoordinates().replace(),
-                            m.getSelect(), m.getArguments().get(0));
+                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.isAfter(Instant.ofEpochMilli(#{any(long)}).atZone(ZoneId.systemDefault()))")
+                            .imports("java.time.Instant", "java.time.ZoneId").build()
+                            .apply(getCursor(), m.getCoordinates().replace(),
+                                    m.getSelect(), m.getArguments().get(0));
                 }
                 if (IS_BEFORE_LONG.matches(method)) {
                     if (isInstantType(method.getSelect())) {
                         maybeAddImport("java.time.Instant");
-                        return IS_BEFORE_LONG_INST.apply(getCursor(), m.getCoordinates().replace(),
-                                m.getSelect(), m.getArguments().get(0));
+                        return JavaTemplate.builder("#{any(java.time.Instant)}.isBefore(Instant.ofEpochMilli(#{any(long)}))")
+                                .imports("java.time.Instant").build()
+                                .apply(getCursor(), m.getCoordinates().replace(),
+                                        m.getSelect(), m.getArguments().get(0));
                     }
                     maybeAddImport("java.time.Instant");
                     maybeAddImport("java.time.ZoneId");
-                    return IS_BEFORE_LONG_DT.apply(getCursor(), m.getCoordinates().replace(),
-                            m.getSelect(), m.getArguments().get(0));
+                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.isBefore(Instant.ofEpochMilli(#{any(long)}).atZone(ZoneId.systemDefault()))")
+                            .imports("java.time.Instant", "java.time.ZoneId").build()
+                            .apply(getCursor(), m.getCoordinates().replace(),
+                                    m.getSelect(), m.getArguments().get(0));
                 }
                 if (IS_BEFORE_NOW.matches(method)) {
                     maybeAddImport("java.time.ZonedDateTime");
-                    return IS_BEFORE_NOW_T.apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
+                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.isBefore(ZonedDateTime.now())")
+                            .imports("java.time.ZonedDateTime").build()
+                            .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }
                 if (IS_EQUAL_LONG.matches(method)) {
                     maybeAddImport("java.time.Instant");
                     maybeAddImport("java.time.ZoneId");
-                    return IS_EQUAL_LONG_T.apply(getCursor(), m.getCoordinates().replace(),
-                            m.getSelect(), m.getArguments().get(0));
+                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.isEqual(Instant.ofEpochMilli(#{any(long)}).atZone(ZoneId.systemDefault()))")
+                            .imports("java.time.Instant", "java.time.ZoneId").build()
+                            .apply(getCursor(), m.getCoordinates().replace(),
+                                    m.getSelect(), m.getArguments().get(0));
                 }
                 if (TO_DATE.matches(method)) {
                     maybeAddImport("java.util.Date");
-                    return TO_DATE_T.apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
+                    return JavaTemplate.builder("Date.from(#{any(java.time.ZonedDateTime)}.toInstant())")
+                            .imports("java.util.Date").build()
+                            .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }
                 if (TO_STRING_FORMATTER.matches(method)) {
-                    return TO_STRING_FORMATTER_T.apply(getCursor(), m.getCoordinates().replace(),
-                            m.getSelect(), m.getArguments().get(0));
+                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.format(#{any(java.time.format.DateTimeFormatter)})")
+                            .build()
+                            .apply(getCursor(), m.getCoordinates().replace(),
+                                    m.getSelect(), m.getArguments().get(0));
                 }
                 if (TO_INSTANT.matches(method)) {
-                    return TO_INSTANT_T.apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
+                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.toInstant()").build()
+                            .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }
                 if (GET_MILLIS.matches(method)) {
-                    return GET_MILLIS_T.apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
+                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.toInstant().toEpochMilli()").build()
+                            .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }
                 return m;
             }
-        };
-        return Preconditions.check(new UsesType<>("org.joda.time.*", true), visitor);
+        });
     }
 }
