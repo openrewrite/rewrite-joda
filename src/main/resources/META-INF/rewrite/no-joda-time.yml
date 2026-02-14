@@ -16,10 +16,22 @@
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.joda.time.JodaTimeRecipe
-displayName: Migrate Joda-Time to Java time
-description: Prefer the Java standard library over third-party usage of Joda Time.
+name: org.openrewrite.java.joda.time.NoJodaTime
+displayName: Prefer the Java standard library instead of Joda-Time
+description: >-
+  Before Java 8, Java lacked a robust date and time library, leading to the widespread use of Joda-Time to fill this
+  gap. With the release of Java 8, the `java.time` package was introduced, incorporating most of Joda-Time's concepts.
+  Features deemed too specialized or bulky for `java.time` were included in the ThreeTen-Extra library.  This recipe
+  migrates Joda-Time types to `java.time` and `threeten-extra` types.
+tags:
+  - joda-time
 recipeList:
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.threeten
+      artifactId: threeten-extra
+      version: 1.8.0
+      onlyIfUsing: org.joda.time.*Interval*
+
   # Phase 1: Rename methods (must run BEFORE ChangeType)
   # AbstractDateTime accessors
   - org.openrewrite.java.ChangeMethodName:
@@ -217,22 +229,3 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.joda.time.LocalDateTime
       newFullyQualifiedTypeName: java.time.LocalDateTime
-
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.joda.time.NoJodaTime
-displayName: Prefer the Java standard library instead of Joda-Time
-description: >-
-  Before Java 8, Java lacked a robust date and time library, leading to the widespread use of Joda-Time to fill this
-  gap. With the release of Java 8, the `java.time` package was introduced, incorporating most of Joda-Time's concepts.
-  Features deemed too specialized or bulky for `java.time` were included in the ThreeTen-Extra library.  This recipe
-  migrates Joda-Time types to `java.time` and `threeten-extra` types.
-tags:
-  - joda-time
-recipeList:
-  - org.openrewrite.java.dependencies.AddDependency:
-      groupId: org.threeten
-      artifactId: threeten-extra
-      version: 1.8.0
-      onlyIfUsing: org.joda.time.*Interval*
-  - org.openrewrite.java.joda.time.JodaTimeRecipe
