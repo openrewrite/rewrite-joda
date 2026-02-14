@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.joda.time;
 
+import lombok.Getter;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -22,15 +23,11 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.search.UsesType;
 
 public class JodaTimeRecipe extends Recipe {
-    @Override
-    public String getDisplayName() {
-        return "Migrate Joda-Time to Java time";
-    }
+    @Getter
+    final String displayName = "Migrate Joda-Time to Java time";
 
-    @Override
-    public String getDescription() {
-        return "Prefer the Java standard library over third-party usage of Joda Time.";
-    }
+    @Getter
+    final String description = "Prefer the Java standard library over third-party usage of Joda Time.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
