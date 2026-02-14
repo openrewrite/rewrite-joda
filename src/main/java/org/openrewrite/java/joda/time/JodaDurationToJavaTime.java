@@ -30,7 +30,7 @@ import org.openrewrite.java.tree.J;
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class JodaDurationToJavaTime extends Recipe {
-    String displayName = "Migrate Joda-Time Duration to Java time";
+    String displayName = "Migrate Joda-Time `Duration` to Java time";
 
     String description = "Migrates `org.joda.time.Duration` constructor and method calls to `java.time.Duration`.";
 

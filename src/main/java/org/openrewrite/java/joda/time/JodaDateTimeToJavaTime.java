@@ -30,7 +30,7 @@ import org.openrewrite.java.tree.J;
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class JodaDateTimeToJavaTime extends Recipe {
-    String displayName = "Migrate Joda-Time DateTime to java.time.ZonedDateTime";
+    String displayName = "Migrate Joda-Time `DateTime` to `java.time.ZonedDateTime`";
 
     String description = "Migrates Joda-Time `DateTime` constructors and instance methods to the equivalent `java.time.ZonedDateTime` calls.";
 

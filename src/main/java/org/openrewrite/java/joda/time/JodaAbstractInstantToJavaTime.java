@@ -33,7 +33,7 @@ import org.openrewrite.java.tree.TypeUtils;
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class JodaAbstractInstantToJavaTime extends Recipe {
-    String displayName = "Migrate Joda-Time AbstractInstant to Java time";
+    String displayName = "Migrate Joda-Time `AbstractInstant` to Java time";
 
     String description = "Migrates Joda-Time `AbstractInstant` method calls to their Java time equivalents.";
 

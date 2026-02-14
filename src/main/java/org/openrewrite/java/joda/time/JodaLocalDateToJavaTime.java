@@ -30,7 +30,7 @@ import org.openrewrite.java.tree.J;
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class JodaLocalDateToJavaTime extends Recipe {
-    String displayName = "Migrate Joda-Time LocalDate to java.time.LocalDate";
+    String displayName = "Migrate Joda-Time `LocalDate` to `java.time.LocalDate`";
 
     String description = "Migrates Joda-Time `LocalDate` constructors and instance methods to the equivalent `java.time.LocalDate` calls.";
 

@@ -30,7 +30,7 @@ import org.openrewrite.java.tree.J;
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class JodaDateMidnightToJavaTime extends Recipe {
-    String displayName = "Migrate Joda-Time DateMidnight to Java time";
+    String displayName = "Migrate Joda-Time `DateMidnight` to Java time";
 
     String description = "Migrates `org.joda.time.DateMidnight` constructor and `now()` calls to `java.time.LocalDate.now().atStartOfDay(...)`.";
 

@@ -31,7 +31,7 @@ import org.openrewrite.java.tree.J;
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class JodaIntervalToJavaTime extends Recipe {
-    String displayName = "Migrate Joda-Time Interval to Java time";
+    String displayName = "Migrate Joda-Time `Interval` to Java time";
 
     String description = "Migrates `org.joda.time.Interval` constructors and methods to their Java time equivalents using ThreeTen-Extra.";
 
