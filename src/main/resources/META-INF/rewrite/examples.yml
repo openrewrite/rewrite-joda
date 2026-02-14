@@ -13,7 +13,7 @@
 # limitations under the License.
 ---
 type: specs.openrewrite.org/v1beta/example
-recipeName: org.openrewrite.java.joda.time.JodaTimeRecipe
+recipeName: org.openrewrite.java.joda.time.NoJodaTime
 examples:
 - description: '`JodaAbstractInstantToJavaTimeTest#migrateAbstractInstant`'
   sources:
