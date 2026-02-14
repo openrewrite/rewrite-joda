@@ -46,29 +46,29 @@ class JodaDurationToJavaTimeTest implements RewriteTest {
 
               class A {
                   public void foo() {
-                      System.out.println(Duration.standardDays(1L));
-                      System.out.println(Duration.standardHours(1L));
-                      System.out.println(Duration.standardMinutes(1L));
-                      System.out.println(Duration.standardSeconds(1L));
-                      System.out.println(Duration.millis(1000L));
-                      System.out.println(new Duration(1000L));
-                      System.out.println(new Duration(1000L, 2000L));
-                      System.out.println(new Duration(1000L).getStandardDays());
-                      System.out.println(new Duration(1000L).getStandardHours());
-                      System.out.println(new Duration(1000L).getStandardMinutes());
-                      System.out.println(new Duration(1000L).getStandardSeconds());
-                      System.out.println(new Duration(1000L).toDuration());
-                      System.out.println(new Duration(1000L).withMillis(2000L));
-                      System.out.println(new Duration(1000L).withDurationAdded(550L, 2));
-                      System.out.println(new Duration(1000L).withDurationAdded(new Duration(550L), 2));
-                      System.out.println(new Duration(1000L).plus(550L));
-                      System.out.println(new Duration(1000L).plus(new Duration(550L)));
-                      System.out.println(new Duration(1000L).minus(550L));
-                      System.out.println(new Duration(1000L).minus(new Duration(550L)));
-                      System.out.println(new Duration(1000L).multipliedBy(2));
-                      System.out.println(new Duration(1000L).dividedBy(2));
-                      System.out.println(new Duration(1000L).negated());
-                      System.out.println(new Duration(1000L).abs());
+                      Duration.standardDays(1L);
+                      Duration.standardHours(1L);
+                      Duration.standardMinutes(1L);
+                      Duration.standardSeconds(1L);
+                      Duration.millis(1000L);
+                      new Duration(1000L);
+                      new Duration(1000L, 2000L);
+                      new Duration(1000L).getStandardDays();
+                      new Duration(1000L).getStandardHours();
+                      new Duration(1000L).getStandardMinutes();
+                      new Duration(1000L).getStandardSeconds();
+                      new Duration(1000L).toDuration();
+                      new Duration(1000L).withMillis(2000L);
+                      new Duration(1000L).withDurationAdded(550L, 2);
+                      new Duration(1000L).withDurationAdded(new Duration(550L), 2);
+                      new Duration(1000L).plus(550L);
+                      new Duration(1000L).plus(new Duration(550L));
+                      new Duration(1000L).minus(550L);
+                      new Duration(1000L).minus(new Duration(550L));
+                      new Duration(1000L).multipliedBy(2);
+                      new Duration(1000L).dividedBy(2);
+                      new Duration(1000L).negated();
+                      new Duration(1000L).abs();
                   }
               }
               """,
@@ -78,29 +78,29 @@ class JodaDurationToJavaTimeTest implements RewriteTest {
 
               class A {
                   public void foo() {
-                      System.out.println(Duration.ofDays(1L));
-                      System.out.println(Duration.ofHours(1L));
-                      System.out.println(Duration.ofMinutes(1L));
-                      System.out.println(Duration.ofSeconds(1L));
-                      System.out.println(Duration.ofMillis(1000L));
-                      System.out.println(Duration.ofMillis(1000L));
-                      System.out.println(Duration.between(Instant.ofEpochMilli(1000L), Instant.ofEpochMilli(2000L)));
-                      System.out.println(Duration.ofMillis(1000L).toDays());
-                      System.out.println(Duration.ofMillis(1000L).toHours());
-                      System.out.println(Duration.ofMillis(1000L).toMinutes());
-                      System.out.println(Duration.ofMillis(1000L).getSeconds());
-                      System.out.println(Duration.ofMillis(1000L));
-                      System.out.println(Duration.ofMillis(2000L));
-                      System.out.println(Duration.ofMillis(1000L).plusMillis(550L * 2));
-                      System.out.println(Duration.ofMillis(1000L).plus(Duration.ofMillis(550L).multipliedBy(2)));
-                      System.out.println(Duration.ofMillis(1000L).plusMillis(550L));
-                      System.out.println(Duration.ofMillis(1000L).plus(Duration.ofMillis(550L)));
-                      System.out.println(Duration.ofMillis(1000L).minusMillis(550L));
-                      System.out.println(Duration.ofMillis(1000L).minus(Duration.ofMillis(550L)));
-                      System.out.println(Duration.ofMillis(1000L).multipliedBy(2));
-                      System.out.println(Duration.ofMillis(1000L).dividedBy(2));
-                      System.out.println(Duration.ofMillis(1000L).negated());
-                      System.out.println(Duration.ofMillis(1000L).abs());
+                      Duration.ofDays(1L);
+                      Duration.ofHours(1L);
+                      Duration.ofMinutes(1L);
+                      Duration.ofSeconds(1L);
+                      Duration.ofMillis(1000L);
+                      Duration.ofMillis(1000L);
+                      Duration.between(Instant.ofEpochMilli(1000L), Instant.ofEpochMilli(2000L));
+                      Duration.ofMillis(1000L).toDays();
+                      Duration.ofMillis(1000L).toHours();
+                      Duration.ofMillis(1000L).toMinutes();
+                      Duration.ofMillis(1000L).getSeconds();
+                      Duration.ofMillis(1000L);
+                      Duration.ofMillis(2000L);
+                      Duration.ofMillis(1000L).plusMillis(550L * 2);
+                      Duration.ofMillis(1000L).plus(Duration.ofMillis(550L).multipliedBy(2));
+                      Duration.ofMillis(1000L).plusMillis(550L);
+                      Duration.ofMillis(1000L).plus(Duration.ofMillis(550L));
+                      Duration.ofMillis(1000L).minusMillis(550L);
+                      Duration.ofMillis(1000L).minus(Duration.ofMillis(550L));
+                      Duration.ofMillis(1000L).multipliedBy(2);
+                      Duration.ofMillis(1000L).dividedBy(2);
+                      Duration.ofMillis(1000L).negated();
+                      Duration.ofMillis(1000L).abs();
                   }
               }
               """
@@ -118,10 +118,10 @@ class JodaDurationToJavaTimeTest implements RewriteTest {
 
               class A {
                   public void foo() {
-                      System.out.println(new Duration(1000L).toStandardDays());
-                      System.out.println(new Duration(1000L).toStandardHours());
-                      System.out.println(new Duration(1000L).toStandardMinutes());
-                      System.out.println(new Duration(1000L).toStandardSeconds());
+                      new Duration(1000L).toStandardDays();
+                      new Duration(1000L).toStandardHours();
+                      new Duration(1000L).toStandardMinutes();
+                      new Duration(1000L).toStandardSeconds();
                   }
               }
               """,
@@ -130,10 +130,10 @@ class JodaDurationToJavaTimeTest implements RewriteTest {
 
               class A {
                   public void foo() {
-                      System.out.println(Duration.ofMillis(1000L).toDays());
-                      System.out.println(Duration.ofMillis(1000L).toHours());
-                      System.out.println(Duration.ofMillis(1000L).toMinutes());
-                      System.out.println(Duration.ofMillis(1000L).getSeconds());
+                      Duration.ofMillis(1000L).toDays();
+                      Duration.ofMillis(1000L).toHours();
+                      Duration.ofMillis(1000L).toMinutes();
+                      Duration.ofMillis(1000L).getSeconds();
                   }
               }
               """
@@ -152,7 +152,7 @@ class JodaDurationToJavaTimeTest implements RewriteTest {
 
               class A {
                   public void foo(ReadableDuration rd) {
-                      System.out.println(rd);
+                      rd.toString();
                   }
                   public void bar() {
                       foo(new Duration(1000));
@@ -164,7 +164,7 @@ class JodaDurationToJavaTimeTest implements RewriteTest {
 
               class A {
                   public void foo(Duration rd) {
-                      System.out.println(rd);
+                      rd.toString();
                   }
                   public void bar() {
                       foo(Duration.ofMillis(1000));

@@ -114,7 +114,7 @@ class JodaAbstractInstantToJavaTimeTest implements RewriteTest {
 
               class A {
                   public void foo(ReadableInstant ri) {
-                      System.out.println(ri);
+                      ri.toString();
                   }
                   public void bar() {
                       foo(new Instant());
@@ -126,7 +126,7 @@ class JodaAbstractInstantToJavaTimeTest implements RewriteTest {
 
               class A {
                   public void foo(Instant ri) {
-                      System.out.println(ri);
+                      ri.toString();
                   }
                   public void bar() {
                       foo(Instant.now());

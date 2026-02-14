@@ -51,7 +51,7 @@ class NoJodaTimeTest implements RewriteTest {
                           DateTime dt = new DateTime();
                           DateTime dt1 = new DateTime().plusDays(1);
                           Interval i = new Interval(dt, dt1);
-                          System.out.println(i.toDuration());
+                          i.toDuration();
                       }
                   }
                   """,
@@ -65,7 +65,7 @@ class NoJodaTimeTest implements RewriteTest {
                           ZonedDateTime dt = ZonedDateTime.now();
                           ZonedDateTime dt1 = ZonedDateTime.now().plusDays(1);
                           Interval i = Interval.of(dt.toInstant(), dt1.toInstant());
-                          System.out.println(i.toDuration());
+                          i.toDuration();
                       }
                   }
                   """

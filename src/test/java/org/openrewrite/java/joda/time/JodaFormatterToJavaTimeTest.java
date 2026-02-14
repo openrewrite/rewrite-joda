@@ -46,19 +46,19 @@ class JodaFormatterToJavaTimeTest implements RewriteTest {
 
               class A {
                   public void foo() {
-                      System.out.println(DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ"));
-                      System.out.println(DateTimeFormat.shortDate());
-                      System.out.println(DateTimeFormat.mediumDate());
-                      System.out.println(DateTimeFormat.longDate());
-                      System.out.println(DateTimeFormat.fullDate());
-                      System.out.println(DateTimeFormat.shortTime());
-                      System.out.println(DateTimeFormat.mediumTime());
-                      System.out.println(DateTimeFormat.longTime());
-                      System.out.println(DateTimeFormat.fullTime());
-                      System.out.println(DateTimeFormat.shortDateTime());
-                      System.out.println(DateTimeFormat.mediumDateTime());
-                      System.out.println(DateTimeFormat.longDateTime());
-                      System.out.println(DateTimeFormat.fullDateTime());
+                      DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+                      DateTimeFormat.shortDate();
+                      DateTimeFormat.mediumDate();
+                      DateTimeFormat.longDate();
+                      DateTimeFormat.fullDate();
+                      DateTimeFormat.shortTime();
+                      DateTimeFormat.mediumTime();
+                      DateTimeFormat.longTime();
+                      DateTimeFormat.fullTime();
+                      DateTimeFormat.shortDateTime();
+                      DateTimeFormat.mediumDateTime();
+                      DateTimeFormat.longDateTime();
+                      DateTimeFormat.fullDateTime();
                   }
               }
               """,
@@ -68,19 +68,19 @@ class JodaFormatterToJavaTimeTest implements RewriteTest {
 
               class A {
                   public void foo() {
-                      System.out.println(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ"));
-                      System.out.println(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT));
-                      System.out.println(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM));
-                      System.out.println(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG));
-                      System.out.println(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL));
-                      System.out.println(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT));
-                      System.out.println(DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM));
-                      System.out.println(DateTimeFormatter.ofLocalizedTime(FormatStyle.LONG));
-                      System.out.println(DateTimeFormatter.ofLocalizedTime(FormatStyle.FULL));
-                      System.out.println(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.SHORT));
-                      System.out.println(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.MEDIUM));
-                      System.out.println(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.LONG));
-                      System.out.println(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.FULL));
+                      DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+                      DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT);
+                      DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM);
+                      DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG);
+                      DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL);
+                      DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT);
+                      DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM);
+                      DateTimeFormatter.ofLocalizedTime(FormatStyle.LONG);
+                      DateTimeFormatter.ofLocalizedTime(FormatStyle.FULL);
+                      DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.SHORT);
+                      DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.MEDIUM);
+                      DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.LONG);
+                      DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.FULL);
                   }
               }
               """
@@ -139,7 +139,7 @@ class JodaFormatterToJavaTimeTest implements RewriteTest {
             """
               class A {
                   public void foo() {
-                      System.out.println(org.joda.time.format.DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ"));
+                      org.joda.time.format.DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
                   }
               }
               """,
@@ -148,7 +148,7 @@ class JodaFormatterToJavaTimeTest implements RewriteTest {
 
               class A {
                   public void foo() {
-                      System.out.println(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ"));
+                      DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
                   }
               }
               """

@@ -47,12 +47,12 @@ class JodaInstantToJavaTimeTest implements RewriteTest {
 
               class A {
                   public void foo() {
-                      System.out.println(new Instant());
-                      System.out.println(Instant.now().getMillis());
-                      System.out.println(Instant.now().minus(Duration.standardDays(1L)));
-                      System.out.println(Instant.ofEpochMilli(1234567890L));
-                      System.out.println(Instant.parse("2024-10-25T15:45:00"));
-                      System.out.println(Instant.now().plus(Duration.standardDays(1L)));
+                      new Instant();
+                      Instant.now().getMillis();
+                      Instant.now().minus(Duration.standardDays(1L));
+                      Instant.ofEpochMilli(1234567890L);
+                      Instant.parse("2024-10-25T15:45:00");
+                      Instant.now().plus(Duration.standardDays(1L));
                   }
               }
               """,
@@ -62,12 +62,12 @@ class JodaInstantToJavaTimeTest implements RewriteTest {
 
               class A {
                   public void foo() {
-                      System.out.println(Instant.now());
-                      System.out.println(Instant.now().toEpochMilli());
-                      System.out.println(Instant.now().minus(Duration.ofDays(1L)));
-                      System.out.println(Instant.ofEpochMilli(1234567890L));
-                      System.out.println(Instant.parse("2024-10-25T15:45:00"));
-                      System.out.println(Instant.now().plus(Duration.ofDays(1L)));
+                      Instant.now();
+                      Instant.now().toEpochMilli();
+                      Instant.now().minus(Duration.ofDays(1L));
+                      Instant.ofEpochMilli(1234567890L);
+                      Instant.parse("2024-10-25T15:45:00");
+                      Instant.now().plus(Duration.ofDays(1L));
                   }
               }
               """

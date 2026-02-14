@@ -47,11 +47,11 @@ class JodaDateTimeZoneToJavaTimeTest implements RewriteTest {
 
               class A {
                   public void foo() {
-                      System.out.println(DateTimeZone.UTC);
-                      System.out.println(DateTimeZone.forID("America/New_York"));
-                      System.out.println(DateTimeZone.forOffsetHours(2));
-                      System.out.println(DateTimeZone.forOffsetHoursMinutes(5, 30));
-                      System.out.println(DateTimeZone.forTimeZone(TimeZone.getTimeZone("America/New_York")));
+                      DateTimeZone.UTC.toString();
+                      DateTimeZone.forID("America/New_York");
+                      DateTimeZone.forOffsetHours(2);
+                      DateTimeZone.forOffsetHoursMinutes(5, 30);
+                      DateTimeZone.forTimeZone(TimeZone.getTimeZone("America/New_York"));
                   }
               }
               """,
@@ -62,11 +62,11 @@ class JodaDateTimeZoneToJavaTimeTest implements RewriteTest {
 
               class A {
                   public void foo() {
-                      System.out.println(ZoneOffset.UTC);
-                      System.out.println(ZoneId.of("America/New_York"));
-                      System.out.println(ZoneOffset.ofHours(2));
-                      System.out.println(ZoneOffset.ofHoursMinutes(5, 30));
-                      System.out.println(TimeZone.getTimeZone("America/New_York").toZoneId());
+                      ZoneOffset.UTC.toString();
+                      ZoneId.of("America/New_York");
+                      ZoneOffset.ofHours(2);
+                      ZoneOffset.ofHoursMinutes(5, 30);
+                      TimeZone.getTimeZone("America/New_York").toZoneId();
                   }
               }
               """

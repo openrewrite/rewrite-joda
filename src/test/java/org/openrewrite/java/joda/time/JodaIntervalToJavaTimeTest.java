@@ -49,10 +49,10 @@ class JodaIntervalToJavaTimeTest implements RewriteTest {
 
                 class A {
                     public void foo() {
-                        System.out.println(new Interval(50, 100));
-                        System.out.println(new Interval(50, 100, DateTimeZone.UTC));
-                        System.out.println(new Interval(DateTime.now(), DateTime.now().plusDays(1)));
-                        System.out.println(new Interval(DateTime.now(), Duration.standardDays(1)));
+                        new Interval(50, 100);
+                        new Interval(50, 100, DateTimeZone.UTC);
+                        new Interval(DateTime.now(), DateTime.now().plusDays(1));
+                        new Interval(DateTime.now(), Duration.standardDays(1));
                     }
                 }
                 """,
@@ -65,10 +65,10 @@ class JodaIntervalToJavaTimeTest implements RewriteTest {
 
               class A {
                   public void foo() {
-                      System.out.println(Interval.of(Instant.ofEpochMilli(50), Instant.ofEpochMilli(100)));
-                      System.out.println(Interval.of(Instant.ofEpochMilli(50), Instant.ofEpochMilli(100)));
-                      System.out.println(Interval.of(ZonedDateTime.now().toInstant(), ZonedDateTime.now().plusDays(1).toInstant()));
-                      System.out.println(Interval.of(ZonedDateTime.now().toInstant(), Duration.ofDays(1)));
+                      Interval.of(Instant.ofEpochMilli(50), Instant.ofEpochMilli(100));
+                      Interval.of(Instant.ofEpochMilli(50), Instant.ofEpochMilli(100));
+                      Interval.of(ZonedDateTime.now().toInstant(), ZonedDateTime.now().plusDays(1).toInstant());
+                      Interval.of(ZonedDateTime.now().toInstant(), Duration.ofDays(1));
                   }
               }
               """

@@ -47,7 +47,7 @@ class JodaTimeRecipeTest implements RewriteTest {
               class A {
                   public void foo() {
                       DateTime dt = new DateTime();
-                      System.out.println(dt.toDateTime());
+                      dt.toDateTime().toString();
                   }
               }
               """,
@@ -57,7 +57,7 @@ class JodaTimeRecipeTest implements RewriteTest {
               class A {
                   public void foo() {
                       ZonedDateTime dt = ZonedDateTime.now();
-                      System.out.println(dt);
+                      dt.toString();
                   }
               }
               """
@@ -77,8 +77,8 @@ class JodaTimeRecipeTest implements RewriteTest {
               class A {
                   public void foo() {
                       DateTime dt = new DateTime();
-                      System.out.println(dt.toDateTime());
-                      System.out.println(new B().dateTime.toDateTime());
+                      dt.toDateTime().toString();
+                      new B().dateTime.toDateTime().toString();
                   }
 
                   public static class B {
@@ -92,8 +92,8 @@ class JodaTimeRecipeTest implements RewriteTest {
               class A {
                   public void foo() {
                       ZonedDateTime dt = ZonedDateTime.now();
-                      System.out.println(dt);
-                      System.out.println(new B().dateTime);
+                      dt.toString();
+                      new B().dateTime.toString();
                   }
 
                   public static class B {
@@ -116,14 +116,14 @@ class JodaTimeRecipeTest implements RewriteTest {
               class A {
                   public void foo() {
                       new B().print(new DateTime());
-                      System.out.println(new B().dateTime);
+                      new B().dateTime.toString();
                   }
               }
 
               class B {
                   DateTime dateTime = new DateTime();
                   public void print(DateTime dateTime) {
-                      System.out.println(dateTime);
+                      dateTime.toString();
                   }
               }
               """,
@@ -133,14 +133,14 @@ class JodaTimeRecipeTest implements RewriteTest {
               class A {
                   public void foo() {
                       new B().print(ZonedDateTime.now());
-                      System.out.println(new B().dateTime);
+                      new B().dateTime.toString();
                   }
               }
 
               class B {
                   ZonedDateTime dateTime = ZonedDateTime.now();
                   public void print(ZonedDateTime dateTime) {
-                      System.out.println(dateTime);
+                      dateTime.toString();
                   }
               }
               """
@@ -170,7 +170,7 @@ class JodaTimeRecipeTest implements RewriteTest {
                       print(dt.toDate());
                   }
                   private void print(Date date) {
-                      System.out.println(date);
+                      date.toString();
                   }
               }
               """,
@@ -191,7 +191,7 @@ class JodaTimeRecipeTest implements RewriteTest {
                       print(Date.from(dt.toInstant()));
                   }
                   private void print(Date date) {
-                      System.out.println(date);
+                      date.toString();
                   }
               }
               """
@@ -378,7 +378,7 @@ class JodaTimeRecipeTest implements RewriteTest {
                   private static class Bar {
                       public void bar(DateTime dt) {
                           DateTime d = foo(dt);
-                          System.out.println(d.getMillis());
+                          d.getMillis();
                       }
                   }
               }
@@ -398,7 +398,7 @@ class JodaTimeRecipeTest implements RewriteTest {
                   private static class Bar {
                       public void bar(ZonedDateTime dt) {
                           ZonedDateTime d = foo(dt);
-                          System.out.println(d.toInstant().toEpochMilli());
+                          d.toInstant().toEpochMilli();
                       }
                   }
               }
@@ -427,7 +427,7 @@ class JodaTimeRecipeTest implements RewriteTest {
                   private static class Bar {
                       public void bar() {
                           DateTime d = foo(new DateTime());
-                          System.out.println(d.getMillis());
+                          d.getMillis();
                       }
                   }
               }
@@ -449,7 +449,7 @@ class JodaTimeRecipeTest implements RewriteTest {
                   private static class Bar {
                       public void bar() {
                           ZonedDateTime d = foo(ZonedDateTime.now());
-                          System.out.println(d.toInstant().toEpochMilli());
+                          d.toInstant().toEpochMilli();
                       }
                   }
               }
@@ -558,7 +558,7 @@ class JodaTimeRecipeTest implements RewriteTest {
                       list.add(100L);
                       list.add(200L);
                         list.forEach(millis -> {
-                            System.out.println(new DateTime().withMillis(millis));
+                            new DateTime().withMillis(millis);
                         });
                   }
               }
@@ -575,7 +575,7 @@ class JodaTimeRecipeTest implements RewriteTest {
                       list.add(100L);
                       list.add(200L);
                         list.forEach(millis -> {
-                            System.out.println(ZonedDateTime.ofInstant(Instant.ofEpochMilli(millis), ZonedDateTime.now().getZone()));
+                            ZonedDateTime.ofInstant(Instant.ofEpochMilli(millis), ZonedDateTime.now().getZone());
                         });
                   }
               }
@@ -627,7 +627,7 @@ class JodaTimeRecipeTest implements RewriteTest {
                           * some method reference in comment
                           * {@link java.util.List#add(DateTime)}
                           */
-                         System.out.println(new DateTime());
+                         new DateTime();
                      }
                  }
                  """,
@@ -640,7 +640,7 @@ class JodaTimeRecipeTest implements RewriteTest {
                        * some method reference in comment
                        * {@link java.util.List#add(DateTime)}
                        */
-                      System.out.println(ZonedDateTime.now());
+                      ZonedDateTime.now();
                   }
               }
               """
