@@ -31,4 +31,201 @@ recipeList:
       artifactId: threeten-extra
       version: 1.8.0
       onlyIfUsing: org.joda.time.*Interval*
-  - org.openrewrite.java.joda.time.JodaTimeRecipe
+
+  # Phase 1: Rename methods (must run BEFORE ChangeType)
+  # AbstractDateTime accessors
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.base.AbstractDateTime getHourOfDay()"
+      newMethodName: getHour
+      matchOverrides: true
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.base.AbstractDateTime getMinuteOfHour()"
+      newMethodName: getMinute
+      matchOverrides: true
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.base.AbstractDateTime getSecondOfMinute()"
+      newMethodName: getSecond
+      matchOverrides: true
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.base.AbstractDateTime getMonthOfYear()"
+      newMethodName: getMonthValue
+      matchOverrides: true
+  # DateTime zone methods
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.DateTime withZone(org.joda.time.DateTimeZone)"
+      newMethodName: withZoneSameInstant
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.DateTime withZoneRetainFields(org.joda.time.DateTimeZone)"
+      newMethodName: withZoneSameLocal
+  # DateTime setters
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.DateTime withMonthOfYear(int)"
+      newMethodName: withMonth
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.DateTime withHourOfDay(int)"
+      newMethodName: withHour
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.DateTime withMinuteOfHour(int)"
+      newMethodName: withMinute
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.DateTime withSecondOfMinute(int)"
+      newMethodName: withSecond
+  # Duration static factories
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.Duration standardDays(long)"
+      newMethodName: ofDays
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.Duration standardHours(long)"
+      newMethodName: ofHours
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.Duration standardMinutes(long)"
+      newMethodName: ofMinutes
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.Duration standardSeconds(long)"
+      newMethodName: ofSeconds
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.Duration millis(long)"
+      newMethodName: ofMillis
+  # Duration instance getters
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.Duration getStandardDays()"
+      newMethodName: toDays
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.Duration getStandardHours()"
+      newMethodName: toHours
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.Duration getStandardMinutes()"
+      newMethodName: toMinutes
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.Duration getStandardSeconds()"
+      newMethodName: getSeconds
+  # Duration conversion methods
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.Duration toStandardDays()"
+      newMethodName: toDays
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.Duration toStandardHours()"
+      newMethodName: toHours
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.Duration toStandardMinutes()"
+      newMethodName: toMinutes
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.Duration toStandardSeconds()"
+      newMethodName: getSeconds
+  # DateTimeZone
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.DateTimeZone forID(String)"
+      newMethodName: of
+  # DateTimeFormat
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.format.DateTimeFormat forPattern(String)"
+      newMethodName: ofPattern
+  # Instant
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.Instant getMillis()"
+      newMethodName: toEpochMilli
+  # BaseDuration
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.base.BaseDuration getMillis()"
+      newMethodName: toMillis
+      matchOverrides: true
+  # LocalDate accessors
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.LocalDate getMonthOfYear()"
+      newMethodName: getMonthValue
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.LocalDate withMonthOfYear(int)"
+      newMethodName: withMonth
+  # LocalTime accessors
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.LocalTime getHourOfDay()"
+      newMethodName: getHour
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.LocalTime getMinuteOfHour()"
+      newMethodName: getMinute
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.LocalTime getSecondOfMinute()"
+      newMethodName: getSecond
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.LocalTime withHourOfDay(int)"
+      newMethodName: withHour
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.LocalTime withMinuteOfHour(int)"
+      newMethodName: withMinute
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.LocalTime withSecondOfMinute(int)"
+      newMethodName: withSecond
+
+  # Phase 2: Imperative recipes for structural transformations
+  - org.openrewrite.java.joda.time.JodaDateTimeToJavaTime
+  - org.openrewrite.java.joda.time.JodaAbstractInstantToJavaTime
+  - org.openrewrite.java.joda.time.JodaDurationToJavaTime
+  - org.openrewrite.java.joda.time.JodaIntervalToJavaTime
+  - org.openrewrite.java.joda.time.JodaLocalDateToJavaTime
+  - org.openrewrite.java.joda.time.JodaLocalTimeToJavaTime
+  - org.openrewrite.java.joda.time.JodaFormatterToJavaTime
+  - org.openrewrite.java.joda.time.JodaDateTimeZoneToJavaTime
+  - org.openrewrite.java.joda.time.JodaDateMidnightToJavaTime
+  - org.openrewrite.java.joda.time.JodaInstantToJavaTime
+
+  # Phase 3: ChangeType (must run LAST)
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.joda.time.DateTime
+      newFullyQualifiedTypeName: java.time.ZonedDateTime
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.joda.time.base.BaseDateTime
+      newFullyQualifiedTypeName: java.time.ZonedDateTime
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.joda.time.base.AbstractDateTime
+      newFullyQualifiedTypeName: java.time.ZonedDateTime
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.joda.time.DateTimeZone
+      newFullyQualifiedTypeName: java.time.ZoneId
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.joda.time.format.DateTimeFormatter
+      newFullyQualifiedTypeName: java.time.format.DateTimeFormatter
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.joda.time.format.DateTimeFormat
+      newFullyQualifiedTypeName: java.time.format.DateTimeFormatter
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.joda.time.Duration
+      newFullyQualifiedTypeName: java.time.Duration
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.joda.time.ReadableDuration
+      newFullyQualifiedTypeName: java.time.Duration
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.joda.time.base.BaseDuration
+      newFullyQualifiedTypeName: java.time.Duration
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.joda.time.base.AbstractDuration
+      newFullyQualifiedTypeName: java.time.Duration
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.joda.time.Instant
+      newFullyQualifiedTypeName: java.time.Instant
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.joda.time.base.AbstractInstant
+      newFullyQualifiedTypeName: java.time.Instant
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.joda.time.ReadableInstant
+      newFullyQualifiedTypeName: java.time.Instant
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.joda.time.Interval
+      newFullyQualifiedTypeName: org.threeten.extra.Interval
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.joda.time.base.BaseInterval
+      newFullyQualifiedTypeName: org.threeten.extra.Interval
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.joda.time.base.AbstractInterval
+      newFullyQualifiedTypeName: org.threeten.extra.Interval
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.joda.time.DateMidnight
+      newFullyQualifiedTypeName: java.time.ZonedDateTime
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.joda.time.LocalDate
+      newFullyQualifiedTypeName: java.time.LocalDate
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.joda.time.LocalTime
+      newFullyQualifiedTypeName: java.time.LocalTime
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.joda.time.LocalDateTime
+      newFullyQualifiedTypeName: java.time.LocalDateTime

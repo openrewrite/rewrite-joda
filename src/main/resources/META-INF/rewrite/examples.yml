@@ -13,8 +13,433 @@
 # limitations under the License.
 ---
 type: specs.openrewrite.org/v1beta/example
-recipeName: org.openrewrite.java.joda.time.JodaTimeRecipe
+recipeName: org.openrewrite.java.joda.time.NoJodaTime
 examples:
+- description: '`JodaAbstractInstantToJavaTimeTest#migrateAbstractInstant`'
+  sources:
+  - before: |
+      import org.joda.time.DateTime;
+      import org.joda.time.Duration;
+      import org.joda.time.Instant;
+      import org.joda.time.format.DateTimeFormat;
+
+      class A {
+          public void foo() {
+              new DateTime().equals(DateTime.now());
+              new DateTime().getZone();
+              new DateTime().isAfter(1234567890L);
+              new Instant().isAfter(1234567890L);
+              new DateTime().isAfter(DateTime.now().minusDays(1));
+              new Instant().isAfter(Instant.now().minus(Duration.standardDays(1)));
+              new DateTime().isBefore(1234567890L);
+              new Instant().isBefore(1234567890L);
+              new DateTime().isBefore(DateTime.now().plusDays(1));
+              new Instant().isBefore(Instant.now().plus(Duration.standardDays(1)));
+              new DateTime().isBeforeNow();
+              new DateTime().isEqual(1234567890L);
+              new DateTime().isEqual(DateTime.now().plusDays(1));
+              new DateTime().toDate();
+              new DateTime().toInstant();
+              new DateTime().toString();
+              new DateTime().toString(DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss"));
+          }
+      }
+    after: |
+      import java.time.Duration;
+      import java.time.Instant;
+      import java.time.ZoneId;
+      import java.time.ZonedDateTime;
+      import java.time.format.DateTimeFormatter;
+      import java.util.Date;
+
+      class A {
+          public void foo() {
+              ZonedDateTime.now().equals(ZonedDateTime.now());
+              ZonedDateTime.now().getZone();
+              ZonedDateTime.now().isAfter(Instant.ofEpochMilli(1234567890L).atZone(ZoneId.systemDefault()));
+              Instant.now().isAfter(Instant.ofEpochMilli(1234567890L));
+              ZonedDateTime.now().isAfter(ZonedDateTime.now().minusDays(1));
+              Instant.now().isAfter(Instant.now().minus(Duration.ofDays(1)));
+              ZonedDateTime.now().isBefore(Instant.ofEpochMilli(1234567890L).atZone(ZoneId.systemDefault()));
+              Instant.now().isBefore(Instant.ofEpochMilli(1234567890L));
+              ZonedDateTime.now().isBefore(ZonedDateTime.now().plusDays(1));
+              Instant.now().isBefore(Instant.now().plus(Duration.ofDays(1)));
+              ZonedDateTime.now().isBefore(ZonedDateTime.now());
+              ZonedDateTime.now().isEqual(Instant.ofEpochMilli(1234567890L).atZone(ZoneId.systemDefault()));
+              ZonedDateTime.now().isEqual(ZonedDateTime.now().plusDays(1));
+              Date.from(ZonedDateTime.now().toInstant());
+              ZonedDateTime.now().toInstant();
+              ZonedDateTime.now().toString();
+              ZonedDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
+          }
+      }
+    language: java
+- description: '`JodaDateMidnightToJavaTimeTest#dateMidnightConstructor`'
+  sources:
+  - before: |
+      import org.joda.time.DateMidnight;
+
+      class A {
+          public void foo() {
+              new DateMidnight();
+          }
+      }
+    after: |
+      import java.time.LocalDate;
+      import java.time.ZoneId;
+      import java.time.ZoneOffset;
+
+      class A {
+          public void foo() {
+              LocalDate.now().atStartOfDay(ZoneOffset.of(ZoneId.systemDefault().getId()));
+          }
+      }
+    language: java
+- description: '`JodaDateTimeToJavaTimeTest#migrateNewDateTime`'
+  sources:
+  - before: |
+      import org.joda.time.DateTime;
+      import org.joda.time.DateTimeZone;
+      import java.util.TimeZone;
+
+      class A {
+          public void foo() {
+              System.out.println(new DateTime());
+              System.out.println(new DateTime(DateTimeZone.UTC));
+              System.out.println(new DateTime(1234567890L));
+              System.out.println(new DateTime(1234567890L, DateTimeZone.forID("America/New_York")));
+              System.out.println(new DateTime(2024, 9, 30, 12, 58));
+              System.out.println(new DateTime(2024, 9, 30, 12, 58, DateTimeZone.forOffsetHours(2)));
+              System.out.println(new DateTime(2024, 9, 30, 13, 3, 15));
+              System.out.println(new DateTime(2024, 9, 30, 13, 3, 15, DateTimeZone.forOffsetHoursMinutes(5, 30)));
+              System.out.println(new DateTime(2024, 9, 30, 13, 49, 15, 545));
+              System.out.println(new DateTime(2024, 9, 30, 13, 49, 15, 545, DateTimeZone.forTimeZone(TimeZone.getTimeZone("America/New_York"))));
+          }
+      }
+    after: |
+      import java.time.Instant;
+      import java.time.ZoneId;
+      import java.time.ZoneOffset;
+      import java.time.ZonedDateTime;
+      import java.util.TimeZone;
+
+      class A {
+          public void foo() {
+              System.out.println(ZonedDateTime.now());
+              System.out.println(ZonedDateTime.now(ZoneOffset.UTC));
+              System.out.println(ZonedDateTime.ofInstant(Instant.ofEpochMilli(1234567890L), ZoneId.systemDefault()));
+              System.out.println(ZonedDateTime.ofInstant(Instant.ofEpochMilli(1234567890L), ZoneId.of("America/New_York")));
+              System.out.println(ZonedDateTime.of(2024, 9, 30, 12, 58, 0, 0, ZoneId.systemDefault()));
+              System.out.println(ZonedDateTime.of(2024, 9, 30, 12, 58, 0, 0, ZoneOffset.ofHours(2)));
+              System.out.println(ZonedDateTime.of(2024, 9, 30, 13, 3, 15, 0, ZoneId.systemDefault()));
+              System.out.println(ZonedDateTime.of(2024, 9, 30, 13, 3, 15, 0, ZoneOffset.ofHoursMinutes(5, 30)));
+              System.out.println(ZonedDateTime.of(2024, 9, 30, 13, 49, 15, 545 * 1_000_000, ZoneId.systemDefault()));
+              System.out.println(ZonedDateTime.of(2024, 9, 30, 13, 49, 15, 545 * 1_000_000, TimeZone.getTimeZone("America/New_York").toZoneId()));
+          }
+      }
+    language: java
+- description: '`JodaDateTimeZoneToJavaTimeTest#migrateDateTimeZone`'
+  sources:
+  - before: |
+      import org.joda.time.DateTimeZone;
+      import java.util.TimeZone;
+
+      class A {
+          public void foo() {
+              System.out.println(DateTimeZone.UTC);
+              System.out.println(DateTimeZone.forID("America/New_York"));
+              System.out.println(DateTimeZone.forOffsetHours(2));
+              System.out.println(DateTimeZone.forOffsetHoursMinutes(5, 30));
+              System.out.println(DateTimeZone.forTimeZone(TimeZone.getTimeZone("America/New_York")));
+          }
+      }
+    after: |
+      import java.time.ZoneId;
+      import java.time.ZoneOffset;
+      import java.util.TimeZone;
+
+      class A {
+          public void foo() {
+              System.out.println(ZoneOffset.UTC);
+              System.out.println(ZoneId.of("America/New_York"));
+              System.out.println(ZoneOffset.ofHours(2));
+              System.out.println(ZoneOffset.ofHoursMinutes(5, 30));
+              System.out.println(TimeZone.getTimeZone("America/New_York").toZoneId());
+          }
+      }
+    language: java
+- description: '`JodaDurationToJavaTimeTest#migrateJodaDuration`'
+  sources:
+  - before: |
+      import org.joda.time.Duration;
+
+      class A {
+          public void foo() {
+              System.out.println(Duration.standardDays(1L));
+              System.out.println(Duration.standardHours(1L));
+              System.out.println(Duration.standardMinutes(1L));
+              System.out.println(Duration.standardSeconds(1L));
+              System.out.println(Duration.millis(1000L));
+              System.out.println(new Duration(1000L));
+              System.out.println(new Duration(1000L, 2000L));
+              System.out.println(new Duration(1000L).getStandardDays());
+              System.out.println(new Duration(1000L).getStandardHours());
+              System.out.println(new Duration(1000L).getStandardMinutes());
+              System.out.println(new Duration(1000L).getStandardSeconds());
+              System.out.println(new Duration(1000L).toDuration());
+              System.out.println(new Duration(1000L).withMillis(2000L));
+              System.out.println(new Duration(1000L).withDurationAdded(550L, 2));
+              System.out.println(new Duration(1000L).withDurationAdded(new Duration(550L), 2));
+              System.out.println(new Duration(1000L).plus(550L));
+              System.out.println(new Duration(1000L).plus(new Duration(550L)));
+              System.out.println(new Duration(1000L).minus(550L));
+              System.out.println(new Duration(1000L).minus(new Duration(550L)));
+              System.out.println(new Duration(1000L).multipliedBy(2));
+              System.out.println(new Duration(1000L).dividedBy(2));
+              System.out.println(new Duration(1000L).negated());
+              System.out.println(new Duration(1000L).abs());
+          }
+      }
+    after: |
+      import java.time.Duration;
+      import java.time.Instant;
+
+      class A {
+          public void foo() {
+              System.out.println(Duration.ofDays(1L));
+              System.out.println(Duration.ofHours(1L));
+              System.out.println(Duration.ofMinutes(1L));
+              System.out.println(Duration.ofSeconds(1L));
+              System.out.println(Duration.ofMillis(1000L));
+              System.out.println(Duration.ofMillis(1000L));
+              System.out.println(Duration.between(Instant.ofEpochMilli(1000L), Instant.ofEpochMilli(2000L)));
+              System.out.println(Duration.ofMillis(1000L).toDays());
+              System.out.println(Duration.ofMillis(1000L).toHours());
+              System.out.println(Duration.ofMillis(1000L).toMinutes());
+              System.out.println(Duration.ofMillis(1000L).getSeconds());
+              System.out.println(Duration.ofMillis(1000L));
+              System.out.println(Duration.ofMillis(2000L));
+              System.out.println(Duration.ofMillis(1000L).plusMillis(550L * 2));
+              System.out.println(Duration.ofMillis(1000L).plus(Duration.ofMillis(550L).multipliedBy(2)));
+              System.out.println(Duration.ofMillis(1000L).plusMillis(550L));
+              System.out.println(Duration.ofMillis(1000L).plus(Duration.ofMillis(550L)));
+              System.out.println(Duration.ofMillis(1000L).minusMillis(550L));
+              System.out.println(Duration.ofMillis(1000L).minus(Duration.ofMillis(550L)));
+              System.out.println(Duration.ofMillis(1000L).multipliedBy(2));
+              System.out.println(Duration.ofMillis(1000L).dividedBy(2));
+              System.out.println(Duration.ofMillis(1000L).negated());
+              System.out.println(Duration.ofMillis(1000L).abs());
+          }
+      }
+    language: java
+- description: '`JodaFormatterToJavaTimeTest#migrateDateTimeFormat`'
+  sources:
+  - before: |
+      import org.joda.time.format.DateTimeFormat;
+
+      class A {
+          public void foo() {
+              System.out.println(DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ"));
+              System.out.println(DateTimeFormat.shortDate());
+              System.out.println(DateTimeFormat.mediumDate());
+              System.out.println(DateTimeFormat.longDate());
+              System.out.println(DateTimeFormat.fullDate());
+              System.out.println(DateTimeFormat.shortTime());
+              System.out.println(DateTimeFormat.mediumTime());
+              System.out.println(DateTimeFormat.longTime());
+              System.out.println(DateTimeFormat.fullTime());
+              System.out.println(DateTimeFormat.shortDateTime());
+              System.out.println(DateTimeFormat.mediumDateTime());
+              System.out.println(DateTimeFormat.longDateTime());
+              System.out.println(DateTimeFormat.fullDateTime());
+          }
+      }
+    after: |
+      import java.time.format.DateTimeFormatter;
+      import java.time.format.FormatStyle;
+
+      class A {
+          public void foo() {
+              System.out.println(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ"));
+              System.out.println(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT));
+              System.out.println(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM));
+              System.out.println(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG));
+              System.out.println(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL));
+              System.out.println(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT));
+              System.out.println(DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM));
+              System.out.println(DateTimeFormatter.ofLocalizedTime(FormatStyle.LONG));
+              System.out.println(DateTimeFormatter.ofLocalizedTime(FormatStyle.FULL));
+              System.out.println(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.SHORT));
+              System.out.println(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.MEDIUM));
+              System.out.println(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.LONG));
+              System.out.println(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.FULL));
+          }
+      }
+    language: java
+- description: '`JodaInstantToJavaTimeTest#migrateInstant`'
+  sources:
+  - before: |
+      import org.joda.time.Instant;
+      import org.joda.time.Duration;
+
+      class A {
+          public void foo() {
+              System.out.println(new Instant());
+              System.out.println(Instant.now().getMillis());
+              System.out.println(Instant.now().minus(Duration.standardDays(1L)));
+              System.out.println(Instant.ofEpochMilli(1234567890L));
+              System.out.println(Instant.parse("2024-10-25T15:45:00"));
+              System.out.println(Instant.now().plus(Duration.standardDays(1L)));
+          }
+      }
+    after: |
+      import java.time.Duration;
+      import java.time.Instant;
+
+      class A {
+          public void foo() {
+              System.out.println(Instant.now());
+              System.out.println(Instant.now().toEpochMilli());
+              System.out.println(Instant.now().minus(Duration.ofDays(1L)));
+              System.out.println(Instant.ofEpochMilli(1234567890L));
+              System.out.println(Instant.parse("2024-10-25T15:45:00"));
+              System.out.println(Instant.now().plus(Duration.ofDays(1L)));
+          }
+      }
+    language: java
+- description: '`JodaIntervalToJavaTimeTest#migrateInterval`'
+  sources:
+  - before: |
+      import org.joda.time.DateTime;
+      import org.joda.time.Duration;
+      import org.joda.time.Interval;
+      import org.joda.time.DateTimeZone;
+
+      class A {
+          public void foo() {
+              System.out.println(new Interval(50, 100));
+              System.out.println(new Interval(50, 100, DateTimeZone.UTC));
+              System.out.println(new Interval(DateTime.now(), DateTime.now().plusDays(1)));
+              System.out.println(new Interval(DateTime.now(), Duration.standardDays(1)));
+          }
+      }
+    after: |
+      import org.threeten.extra.Interval;
+
+      import java.time.Duration;
+      import java.time.Instant;
+      import java.time.ZonedDateTime;
+
+      class A {
+          public void foo() {
+              System.out.println(Interval.of(Instant.ofEpochMilli(50), Instant.ofEpochMilli(100)));
+              System.out.println(Interval.of(Instant.ofEpochMilli(50), Instant.ofEpochMilli(100)));
+              System.out.println(Interval.of(ZonedDateTime.now().toInstant(), ZonedDateTime.now().plusDays(1).toInstant()));
+              System.out.println(Interval.of(ZonedDateTime.now().toInstant(), Duration.ofDays(1)));
+          }
+      }
+    language: java
+- description: '`JodaLocalDateToJavaTimeTest#migrateLocalDate`'
+  sources:
+  - before: |
+      import org.joda.time.DateTimeZone;
+      import org.joda.time.LocalDate;
+      import org.joda.time.LocalTime;
+
+      class A {
+          public void foo() {
+              new LocalDate();
+              new LocalDate(DateTimeZone.UTC);
+              new LocalDate(2024, 10, 25);
+              new LocalDate(1234567890L);
+              new LocalDate(1234567890L, DateTimeZone.UTC);
+              LocalDate.now().getDayOfWeek();
+              LocalDate.now().getMonthOfYear();
+              LocalDate.now().withMonthOfYear(6);
+              LocalDate.now().plusDays(1);
+              LocalDate.now().toDateTimeAtStartOfDay();
+              LocalDate.now().toDateTimeAtStartOfDay(DateTimeZone.UTC);
+              LocalDate.now().toLocalDateTime(new LocalTime(10, 30));
+          }
+      }
+    after: |
+      import java.time.*;
+
+      class A {
+          public void foo() {
+              LocalDate.now();
+              LocalDate.now(ZoneOffset.UTC);
+              LocalDate.of(2024, 10, 25);
+              Instant.ofEpochMilli(1234567890L).atZone(ZoneId.systemDefault()).toLocalDate();
+              Instant.ofEpochMilli(1234567890L).atZone(ZoneOffset.UTC).toLocalDate();
+              LocalDate.now().getDayOfWeek().getValue();
+              LocalDate.now().getMonthValue();
+              LocalDate.now().withMonth(6);
+              LocalDate.now().plusDays(1);
+              LocalDate.now().atStartOfDay(ZoneId.systemDefault());
+              LocalDate.now().atStartOfDay(ZoneOffset.UTC);
+              LocalDate.now().atTime(LocalTime.of(10, 30));
+          }
+      }
+    language: java
+- description: '`JodaLocalTimeToJavaTimeTest#migrateLocalTime`'
+  sources:
+  - before: |
+      import org.joda.time.DateTimeZone;
+      import org.joda.time.LocalTime;
+
+      class A {
+          public void foo() {
+              new LocalTime();
+              new LocalTime(DateTimeZone.UTC);
+              new LocalTime(10, 30);
+              new LocalTime(10, 30, 45);
+              new LocalTime(10, 30, 45, 500);
+              LocalTime.now().plusMillis(100);
+              LocalTime.now().minusMillis(100);
+              LocalTime.now().withMillisOfSecond(500);
+              LocalTime.now().getMillisOfSecond();
+              LocalTime.now().getMillisOfDay();
+              LocalTime.now().getHourOfDay();
+              LocalTime.now().getMinuteOfHour();
+              LocalTime.now().getSecondOfMinute();
+              LocalTime.now().withHourOfDay(10);
+              LocalTime.now().withMinuteOfHour(30);
+              LocalTime.now().withSecondOfMinute(45);
+              LocalTime.now().toDateTimeToday();
+              LocalTime.now().toDateTimeToday(DateTimeZone.UTC);
+          }
+      }
+    after: |
+      import java.time.LocalDate;
+      import java.time.LocalTime;
+      import java.time.ZoneId;
+      import java.time.ZoneOffset;
+      import java.time.temporal.ChronoField;
+
+      class A {
+          public void foo() {
+              LocalTime.now();
+              LocalTime.now(ZoneOffset.UTC);
+              LocalTime.of(10, 30);
+              LocalTime.of(10, 30, 45);
+              LocalTime.of(10, 30, 45, 500 * 1_000_000);
+              LocalTime.now().plusNanos(100 * 1_000_000L);
+              LocalTime.now().minusNanos(100 * 1_000_000L);
+              LocalTime.now().withNano(500 * 1_000_000);
+              LocalTime.now().get(ChronoField.MILLI_OF_SECOND);
+              LocalTime.now().get(ChronoField.MILLI_OF_DAY);
+              LocalTime.now().getHour();
+              LocalTime.now().getMinute();
+              LocalTime.now().getSecond();
+              LocalTime.now().withHour(10);
+              LocalTime.now().withMinute(30);
+              LocalTime.now().withSecond(45);
+              LocalTime.now().atDate(LocalDate.now()).atZone(ZoneId.systemDefault());
+              LocalTime.now().atDate(LocalDate.now(ZoneOffset.UTC)).atZone(ZoneOffset.UTC);
+          }
+      }
+    language: java
 - description: '`JodaTimeRecipeTest#migrateSafeVariable`'
   sources:
   - before: |

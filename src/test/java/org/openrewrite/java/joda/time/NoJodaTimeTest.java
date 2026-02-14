@@ -16,8 +16,8 @@
 package org.openrewrite.java.joda.time;
 
 import org.junit.jupiter.api.Test;
-import org.junitpioneer.jupiter.ExpectedToFail;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -31,7 +31,7 @@ class NoJodaTimeTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec
           .recipeFromResource("/META-INF/rewrite/no-joda-time.yml", "org.openrewrite.java.joda.time.NoJodaTime")
-          .parser(JavaParser.fromJavaVersion().classpath("joda-time", "threeten-extra"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "joda-time-2", "threeten-extra-1"));
     }
 
     @DocumentExample
@@ -51,7 +51,7 @@ class NoJodaTimeTest implements RewriteTest {
                           DateTime dt = new DateTime();
                           DateTime dt1 = new DateTime().plusDays(1);
                           Interval i = new Interval(dt, dt1);
-                          System.out.println(i.toDuration());
+                          i.toDuration();
                       }
                   }
                   """,
@@ -65,7 +65,7 @@ class NoJodaTimeTest implements RewriteTest {
                           ZonedDateTime dt = ZonedDateTime.now();
                           ZonedDateTime dt1 = ZonedDateTime.now().plusDays(1);
                           Interval i = Interval.of(dt.toInstant(), dt1.toInstant());
-                          System.out.println(i.toDuration());
+                          i.toDuration();
                       }
                   }
                   """
@@ -113,7 +113,6 @@ class NoJodaTimeTest implements RewriteTest {
         );
     }
 
-    @ExpectedToFail("LocalDate migration is not supported, yet. See https://github.com/openrewrite/rewrite-joda/issues/6")
     @Test
     void localDate() {
         rewriteRun(
