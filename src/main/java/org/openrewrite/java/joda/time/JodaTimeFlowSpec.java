@@ -21,9 +21,10 @@ import org.openrewrite.analysis.dataflow.DataFlowSpec;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 
-import static org.openrewrite.java.joda.time.templates.TimeClassNames.JODA_CLASS_PATTERN;
+import java.util.regex.Pattern;
 
 class JodaTimeFlowSpec extends DataFlowSpec {
+    private static final Pattern JODA_CLASS_PATTERN = Pattern.compile("org\\.joda\\.time\\..*");
 
     @Override
     public boolean isSource(@NonNull DataFlowNode srcNode) {
