@@ -17,6 +17,7 @@ package org.openrewrite.java.joda.time;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -45,13 +46,14 @@ public class JodaAbstractInstantToJavaTime extends Recipe {
     private static final MethodMatcher TO_INSTANT = new MethodMatcher("org.joda.time.base.AbstractInstant toInstant()");
     private static final MethodMatcher GET_MILLIS = new MethodMatcher("org.joda.time.base.BaseDateTime getMillis()");
 
-    private static boolean isInstantType(Expression select) {
-        return select != null && TypeUtils.isOfClassType(select.getType(), "org.joda.time.Instant");
-    }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(new UsesType<>("org.joda.time.*", true), new JavaVisitor<ExecutionContext>() {
+            private boolean isInstantType(@Nullable Expression select) {
+                return select != null && TypeUtils.isOfClassType(select.getType(), "org.joda.time.Instant");
+            }
+
             @Override
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation m = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
