@@ -167,8 +167,9 @@ recipeList:
   - org.openrewrite.java.joda.time.JodaDateTimeZoneToJavaTime
   - org.openrewrite.java.joda.time.JodaDateMidnightToJavaTime
   - org.openrewrite.java.joda.time.JodaInstantToJavaTime
+  - org.openrewrite.java.joda.time.JodaTimePeriodToJavaTime
 
-  # Phase 3: ChangeType (must run LAST)
+  # Phase 3: ChangeType and import cleanup (must run LAST)
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.joda.time.DateTime
       newFullyQualifiedTypeName: java.time.ZonedDateTime

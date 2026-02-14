@@ -12,3 +12,4 @@ bin/
 # Exclude files from being added to git index
 .gitmodules
 Sonar.MD
+working-set*/
