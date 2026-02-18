@@ -104,16 +104,16 @@ examples:
 
       class A {
           public void foo() {
-              System.out.println(new DateTime());
-              System.out.println(new DateTime(DateTimeZone.UTC));
-              System.out.println(new DateTime(1234567890L));
-              System.out.println(new DateTime(1234567890L, DateTimeZone.forID("America/New_York")));
-              System.out.println(new DateTime(2024, 9, 30, 12, 58));
-              System.out.println(new DateTime(2024, 9, 30, 12, 58, DateTimeZone.forOffsetHours(2)));
-              System.out.println(new DateTime(2024, 9, 30, 13, 3, 15));
-              System.out.println(new DateTime(2024, 9, 30, 13, 3, 15, DateTimeZone.forOffsetHoursMinutes(5, 30)));
-              System.out.println(new DateTime(2024, 9, 30, 13, 49, 15, 545));
-              System.out.println(new DateTime(2024, 9, 30, 13, 49, 15, 545, DateTimeZone.forTimeZone(TimeZone.getTimeZone("America/New_York"))));
+              new DateTime();
+              new DateTime(DateTimeZone.UTC);
+              new DateTime(1234567890L);
+              new DateTime(1234567890L, DateTimeZone.forID("America/New_York"));
+              new DateTime(2024, 9, 30, 12, 58);
+              new DateTime(2024, 9, 30, 12, 58, DateTimeZone.forOffsetHours(2));
+              new DateTime(2024, 9, 30, 13, 3, 15);
+              new DateTime(2024, 9, 30, 13, 3, 15, DateTimeZone.forOffsetHoursMinutes(5, 30));
+              new DateTime(2024, 9, 30, 13, 49, 15, 545);
+              new DateTime(2024, 9, 30, 13, 49, 15, 545, DateTimeZone.forTimeZone(TimeZone.getTimeZone("America/New_York")));
           }
       }
     after: |
@@ -125,16 +125,16 @@ examples:
 
       class A {
           public void foo() {
-              System.out.println(ZonedDateTime.now());
-              System.out.println(ZonedDateTime.now(ZoneOffset.UTC));
-              System.out.println(ZonedDateTime.ofInstant(Instant.ofEpochMilli(1234567890L), ZoneId.systemDefault()));
-              System.out.println(ZonedDateTime.ofInstant(Instant.ofEpochMilli(1234567890L), ZoneId.of("America/New_York")));
-              System.out.println(ZonedDateTime.of(2024, 9, 30, 12, 58, 0, 0, ZoneId.systemDefault()));
-              System.out.println(ZonedDateTime.of(2024, 9, 30, 12, 58, 0, 0, ZoneOffset.ofHours(2)));
-              System.out.println(ZonedDateTime.of(2024, 9, 30, 13, 3, 15, 0, ZoneId.systemDefault()));
-              System.out.println(ZonedDateTime.of(2024, 9, 30, 13, 3, 15, 0, ZoneOffset.ofHoursMinutes(5, 30)));
-              System.out.println(ZonedDateTime.of(2024, 9, 30, 13, 49, 15, 545 * 1_000_000, ZoneId.systemDefault()));
-              System.out.println(ZonedDateTime.of(2024, 9, 30, 13, 49, 15, 545 * 1_000_000, TimeZone.getTimeZone("America/New_York").toZoneId()));
+              ZonedDateTime.now();
+              ZonedDateTime.now(ZoneOffset.UTC);
+              ZonedDateTime.ofInstant(Instant.ofEpochMilli(1234567890L), ZoneId.systemDefault());
+              ZonedDateTime.ofInstant(Instant.ofEpochMilli(1234567890L), ZoneId.of("America/New_York"));
+              ZonedDateTime.of(2024, 9, 30, 12, 58, 0, 0, ZoneId.systemDefault());
+              ZonedDateTime.of(2024, 9, 30, 12, 58, 0, 0, ZoneOffset.ofHours(2));
+              ZonedDateTime.of(2024, 9, 30, 13, 3, 15, 0, ZoneId.systemDefault());
+              ZonedDateTime.of(2024, 9, 30, 13, 3, 15, 0, ZoneOffset.ofHoursMinutes(5, 30));
+              ZonedDateTime.of(2024, 9, 30, 13, 49, 15, 545 * 1_000_000, ZoneId.systemDefault());
+              ZonedDateTime.of(2024, 9, 30, 13, 49, 15, 545 * 1_000_000, TimeZone.getTimeZone("America/New_York").toZoneId());
           }
       }
     language: java
@@ -146,11 +146,11 @@ examples:
 
       class A {
           public void foo() {
-              System.out.println(DateTimeZone.UTC);
-              System.out.println(DateTimeZone.forID("America/New_York"));
-              System.out.println(DateTimeZone.forOffsetHours(2));
-              System.out.println(DateTimeZone.forOffsetHoursMinutes(5, 30));
-              System.out.println(DateTimeZone.forTimeZone(TimeZone.getTimeZone("America/New_York")));
+              DateTimeZone.UTC.toString();
+              DateTimeZone.forID("America/New_York");
+              DateTimeZone.forOffsetHours(2);
+              DateTimeZone.forOffsetHoursMinutes(5, 30);
+              DateTimeZone.forTimeZone(TimeZone.getTimeZone("America/New_York"));
           }
       }
     after: |
@@ -160,11 +160,11 @@ examples:
 
       class A {
           public void foo() {
-              System.out.println(ZoneOffset.UTC);
-              System.out.println(ZoneId.of("America/New_York"));
-              System.out.println(ZoneOffset.ofHours(2));
-              System.out.println(ZoneOffset.ofHoursMinutes(5, 30));
-              System.out.println(TimeZone.getTimeZone("America/New_York").toZoneId());
+              ZoneOffset.UTC.toString();
+              ZoneId.of("America/New_York");
+              ZoneOffset.ofHours(2);
+              ZoneOffset.ofHoursMinutes(5, 30);
+              TimeZone.getTimeZone("America/New_York").toZoneId();
           }
       }
     language: java
@@ -175,29 +175,29 @@ examples:
 
       class A {
           public void foo() {
-              System.out.println(Duration.standardDays(1L));
-              System.out.println(Duration.standardHours(1L));
-              System.out.println(Duration.standardMinutes(1L));
-              System.out.println(Duration.standardSeconds(1L));
-              System.out.println(Duration.millis(1000L));
-              System.out.println(new Duration(1000L));
-              System.out.println(new Duration(1000L, 2000L));
-              System.out.println(new Duration(1000L).getStandardDays());
-              System.out.println(new Duration(1000L).getStandardHours());
-              System.out.println(new Duration(1000L).getStandardMinutes());
-              System.out.println(new Duration(1000L).getStandardSeconds());
-              System.out.println(new Duration(1000L).toDuration());
-              System.out.println(new Duration(1000L).withMillis(2000L));
-              System.out.println(new Duration(1000L).withDurationAdded(550L, 2));
-              System.out.println(new Duration(1000L).withDurationAdded(new Duration(550L), 2));
-              System.out.println(new Duration(1000L).plus(550L));
-              System.out.println(new Duration(1000L).plus(new Duration(550L)));
-              System.out.println(new Duration(1000L).minus(550L));
-              System.out.println(new Duration(1000L).minus(new Duration(550L)));
-              System.out.println(new Duration(1000L).multipliedBy(2));
-              System.out.println(new Duration(1000L).dividedBy(2));
-              System.out.println(new Duration(1000L).negated());
-              System.out.println(new Duration(1000L).abs());
+              Duration.standardDays(1L);
+              Duration.standardHours(1L);
+              Duration.standardMinutes(1L);
+              Duration.standardSeconds(1L);
+              Duration.millis(1000L);
+              new Duration(1000L);
+              new Duration(1000L, 2000L);
+              new Duration(1000L).getStandardDays();
+              new Duration(1000L).getStandardHours();
+              new Duration(1000L).getStandardMinutes();
+              new Duration(1000L).getStandardSeconds();
+              new Duration(1000L).toDuration();
+              new Duration(1000L).withMillis(2000L);
+              new Duration(1000L).withDurationAdded(550L, 2);
+              new Duration(1000L).withDurationAdded(new Duration(550L), 2);
+              new Duration(1000L).plus(550L);
+              new Duration(1000L).plus(new Duration(550L));
+              new Duration(1000L).minus(550L);
+              new Duration(1000L).minus(new Duration(550L));
+              new Duration(1000L).multipliedBy(2);
+              new Duration(1000L).dividedBy(2);
+              new Duration(1000L).negated();
+              new Duration(1000L).abs();
           }
       }
     after: |
@@ -206,29 +206,29 @@ examples:
 
       class A {
           public void foo() {
-              System.out.println(Duration.ofDays(1L));
-              System.out.println(Duration.ofHours(1L));
-              System.out.println(Duration.ofMinutes(1L));
-              System.out.println(Duration.ofSeconds(1L));
-              System.out.println(Duration.ofMillis(1000L));
-              System.out.println(Duration.ofMillis(1000L));
-              System.out.println(Duration.between(Instant.ofEpochMilli(1000L), Instant.ofEpochMilli(2000L)));
-              System.out.println(Duration.ofMillis(1000L).toDays());
-              System.out.println(Duration.ofMillis(1000L).toHours());
-              System.out.println(Duration.ofMillis(1000L).toMinutes());
-              System.out.println(Duration.ofMillis(1000L).getSeconds());
-              System.out.println(Duration.ofMillis(1000L));
-              System.out.println(Duration.ofMillis(2000L));
-              System.out.println(Duration.ofMillis(1000L).plusMillis(550L * 2));
-              System.out.println(Duration.ofMillis(1000L).plus(Duration.ofMillis(550L).multipliedBy(2)));
-              System.out.println(Duration.ofMillis(1000L).plusMillis(550L));
-              System.out.println(Duration.ofMillis(1000L).plus(Duration.ofMillis(550L)));
-              System.out.println(Duration.ofMillis(1000L).minusMillis(550L));
-              System.out.println(Duration.ofMillis(1000L).minus(Duration.ofMillis(550L)));
-              System.out.println(Duration.ofMillis(1000L).multipliedBy(2));
-              System.out.println(Duration.ofMillis(1000L).dividedBy(2));
-              System.out.println(Duration.ofMillis(1000L).negated());
-              System.out.println(Duration.ofMillis(1000L).abs());
+              Duration.ofDays(1L);
+              Duration.ofHours(1L);
+              Duration.ofMinutes(1L);
+              Duration.ofSeconds(1L);
+              Duration.ofMillis(1000L);
+              Duration.ofMillis(1000L);
+              Duration.between(Instant.ofEpochMilli(1000L), Instant.ofEpochMilli(2000L));
+              Duration.ofMillis(1000L).toDays();
+              Duration.ofMillis(1000L).toHours();
+              Duration.ofMillis(1000L).toMinutes();
+              Duration.ofMillis(1000L).getSeconds();
+              Duration.ofMillis(1000L);
+              Duration.ofMillis(2000L);
+              Duration.ofMillis(1000L).plusMillis(550L * 2);
+              Duration.ofMillis(1000L).plus(Duration.ofMillis(550L).multipliedBy(2));
+              Duration.ofMillis(1000L).plusMillis(550L);
+              Duration.ofMillis(1000L).plus(Duration.ofMillis(550L));
+              Duration.ofMillis(1000L).minusMillis(550L);
+              Duration.ofMillis(1000L).minus(Duration.ofMillis(550L));
+              Duration.ofMillis(1000L).multipliedBy(2);
+              Duration.ofMillis(1000L).dividedBy(2);
+              Duration.ofMillis(1000L).negated();
+              Duration.ofMillis(1000L).abs();
           }
       }
     language: java
@@ -239,19 +239,19 @@ examples:
 
       class A {
           public void foo() {
-              System.out.println(DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ"));
-              System.out.println(DateTimeFormat.shortDate());
-              System.out.println(DateTimeFormat.mediumDate());
-              System.out.println(DateTimeFormat.longDate());
-              System.out.println(DateTimeFormat.fullDate());
-              System.out.println(DateTimeFormat.shortTime());
-              System.out.println(DateTimeFormat.mediumTime());
-              System.out.println(DateTimeFormat.longTime());
-              System.out.println(DateTimeFormat.fullTime());
-              System.out.println(DateTimeFormat.shortDateTime());
-              System.out.println(DateTimeFormat.mediumDateTime());
-              System.out.println(DateTimeFormat.longDateTime());
-              System.out.println(DateTimeFormat.fullDateTime());
+              DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+              DateTimeFormat.shortDate();
+              DateTimeFormat.mediumDate();
+              DateTimeFormat.longDate();
+              DateTimeFormat.fullDate();
+              DateTimeFormat.shortTime();
+              DateTimeFormat.mediumTime();
+              DateTimeFormat.longTime();
+              DateTimeFormat.fullTime();
+              DateTimeFormat.shortDateTime();
+              DateTimeFormat.mediumDateTime();
+              DateTimeFormat.longDateTime();
+              DateTimeFormat.fullDateTime();
           }
       }
     after: |
@@ -260,19 +260,19 @@ examples:
 
       class A {
           public void foo() {
-              System.out.println(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ"));
-              System.out.println(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT));
-              System.out.println(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM));
-              System.out.println(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG));
-              System.out.println(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL));
-              System.out.println(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT));
-              System.out.println(DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM));
-              System.out.println(DateTimeFormatter.ofLocalizedTime(FormatStyle.LONG));
-              System.out.println(DateTimeFormatter.ofLocalizedTime(FormatStyle.FULL));
-              System.out.println(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.SHORT));
-              System.out.println(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.MEDIUM));
-              System.out.println(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.LONG));
-              System.out.println(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.FULL));
+              DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+              DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT);
+              DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM);
+              DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG);
+              DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL);
+              DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT);
+              DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM);
+              DateTimeFormatter.ofLocalizedTime(FormatStyle.LONG);
+              DateTimeFormatter.ofLocalizedTime(FormatStyle.FULL);
+              DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.SHORT);
+              DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.MEDIUM);
+              DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.LONG);
+              DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.FULL);
           }
       }
     language: java
@@ -284,12 +284,12 @@ examples:
 
       class A {
           public void foo() {
-              System.out.println(new Instant());
-              System.out.println(Instant.now().getMillis());
-              System.out.println(Instant.now().minus(Duration.standardDays(1L)));
-              System.out.println(Instant.ofEpochMilli(1234567890L));
-              System.out.println(Instant.parse("2024-10-25T15:45:00"));
-              System.out.println(Instant.now().plus(Duration.standardDays(1L)));
+              new Instant();
+              Instant.now().getMillis();
+              Instant.now().minus(Duration.standardDays(1L));
+              Instant.ofEpochMilli(1234567890L);
+              Instant.parse("2024-10-25T15:45:00");
+              Instant.now().plus(Duration.standardDays(1L));
           }
       }
     after: |
@@ -298,12 +298,12 @@ examples:
 
       class A {
           public void foo() {
-              System.out.println(Instant.now());
-              System.out.println(Instant.now().toEpochMilli());
-              System.out.println(Instant.now().minus(Duration.ofDays(1L)));
-              System.out.println(Instant.ofEpochMilli(1234567890L));
-              System.out.println(Instant.parse("2024-10-25T15:45:00"));
-              System.out.println(Instant.now().plus(Duration.ofDays(1L)));
+              Instant.now();
+              Instant.now().toEpochMilli();
+              Instant.now().minus(Duration.ofDays(1L));
+              Instant.ofEpochMilli(1234567890L);
+              Instant.parse("2024-10-25T15:45:00");
+              Instant.now().plus(Duration.ofDays(1L));
           }
       }
     language: java
@@ -317,10 +317,10 @@ examples:
 
       class A {
           public void foo() {
-              System.out.println(new Interval(50, 100));
-              System.out.println(new Interval(50, 100, DateTimeZone.UTC));
-              System.out.println(new Interval(DateTime.now(), DateTime.now().plusDays(1)));
-              System.out.println(new Interval(DateTime.now(), Duration.standardDays(1)));
+              new Interval(50, 100);
+              new Interval(50, 100, DateTimeZone.UTC);
+              new Interval(DateTime.now(), DateTime.now().plusDays(1));
+              new Interval(DateTime.now(), Duration.standardDays(1));
           }
       }
     after: |
@@ -332,10 +332,10 @@ examples:
 
       class A {
           public void foo() {
-              System.out.println(Interval.of(Instant.ofEpochMilli(50), Instant.ofEpochMilli(100)));
-              System.out.println(Interval.of(Instant.ofEpochMilli(50), Instant.ofEpochMilli(100)));
-              System.out.println(Interval.of(ZonedDateTime.now().toInstant(), ZonedDateTime.now().plusDays(1).toInstant()));
-              System.out.println(Interval.of(ZonedDateTime.now().toInstant(), Duration.ofDays(1)));
+              Interval.of(Instant.ofEpochMilli(50), Instant.ofEpochMilli(100));
+              Interval.of(Instant.ofEpochMilli(50), Instant.ofEpochMilli(100));
+              Interval.of(ZonedDateTime.now().toInstant(), ZonedDateTime.now().plusDays(1).toInstant());
+              Interval.of(ZonedDateTime.now().toInstant(), Duration.ofDays(1));
           }
       }
     language: java
@@ -440,6 +440,27 @@ examples:
           }
       }
     language: java
+- description: '`JodaTimePeriodToJavaTimeTest#daysBetweenGetDays`'
+  sources:
+  - before: |
+      import org.joda.time.DateTime;
+      import org.joda.time.Days;
+
+      class A {
+          void foo(DateTime start, DateTime end) {
+              int days = Days.daysBetween(start, end).getDays();
+          }
+      }
+    after: |
+      import java.time.ZonedDateTime;
+      import java.time.temporal.ChronoUnit;
+
+      class A {
+          void foo(ZonedDateTime start, ZonedDateTime end) {
+              int days = (int) ChronoUnit.DAYS.between(start, end);
+          }
+      }
+    language: java
 - description: '`JodaTimeRecipeTest#migrateSafeVariable`'
   sources:
   - before: |
@@ -448,7 +469,7 @@ examples:
       class A {
           public void foo() {
               DateTime dt = new DateTime();
-              System.out.println(dt.toDateTime());
+              dt.toDateTime().toString();
           }
       }
     after: |
@@ -457,14 +478,10 @@ examples:
       class A {
           public void foo() {
               ZonedDateTime dt = ZonedDateTime.now();
-              System.out.println(dt);
+              dt.toString();
           }
       }
     language: java
----
-type: specs.openrewrite.org/v1beta/example
-recipeName: org.openrewrite.java.joda.time.NoJodaTime
-examples:
 - description: '`NoJodaTimeTest#migrateJodaTime`'
   sources:
   - before: |
@@ -476,7 +493,7 @@ examples:
               DateTime dt = new DateTime();
               DateTime dt1 = new DateTime().plusDays(1);
               Interval i = new Interval(dt, dt1);
-              System.out.println(i.toDuration());
+              i.toDuration();
           }
       }
     after: |
@@ -489,7 +506,7 @@ examples:
               ZonedDateTime dt = ZonedDateTime.now();
               ZonedDateTime dt1 = ZonedDateTime.now().plusDays(1);
               Interval i = Interval.of(dt.toInstant(), dt1.toInstant());
-              System.out.println(i.toDuration());
+              i.toDuration();
           }
       }
     language: java
