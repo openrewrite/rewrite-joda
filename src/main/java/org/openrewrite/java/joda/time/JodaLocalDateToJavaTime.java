@@ -93,8 +93,7 @@ public class JodaLocalDateToJavaTime extends Recipe {
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation m = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                 if (GET_DAY_OF_WEEK.matches(method)) {
-                    return JavaTemplate.builder("#{any(java.time.LocalDate)}.getDayOfWeek().getValue()").build()
-                            .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
+                    return JavaTemplate.apply("#{any(java.time.LocalDate)}.getDayOfWeek().getValue()", getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }
                 if (TO_DT_AT_START.matches(method)) {
                     maybeAddImport("java.time.ZoneId");
@@ -103,14 +102,10 @@ public class JodaLocalDateToJavaTime extends Recipe {
                             .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }
                 if (TO_DT_AT_START_ZONE.matches(method)) {
-                    return JavaTemplate.builder("#{any(java.time.LocalDate)}.atStartOfDay(#{any(java.time.ZoneId)})").build()
-                            .apply(getCursor(), m.getCoordinates().replace(),
-                                    m.getSelect(), m.getArguments().get(0));
+                    return JavaTemplate.apply("#{any(java.time.LocalDate)}.atStartOfDay(#{any(java.time.ZoneId)})", getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
                 }
                 if (TO_LOCAL_DATE_TIME.matches(method)) {
-                    return JavaTemplate.builder("#{any(java.time.LocalDate)}.atTime(#{any(java.time.LocalTime)})").build()
-                            .apply(getCursor(), m.getCoordinates().replace(),
-                                    m.getSelect(), m.getArguments().get(0));
+                    return JavaTemplate.apply("#{any(java.time.LocalDate)}.atTime(#{any(java.time.LocalTime)})", getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
                 }
                 return m;
             }

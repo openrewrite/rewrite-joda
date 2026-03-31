@@ -208,13 +208,10 @@ public class JodaDateTimeToJavaTime extends Recipe {
 
                 // Identity removal
                 if (TO_DATE_TIME.matches(method)) {
-                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}").build()
-                            .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
+                    return JavaTemplate.apply("#{any(java.time.ZonedDateTime)}", getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }
                 if (TO_DATE_TIME_ZONE.matches(method)) {
-                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.withZoneSameInstant(#{any(java.time.ZoneId)})").build()
-                            .apply(getCursor(), m.getCoordinates().replace(),
-                            m.getSelect(), m.getArguments().get(0));
+                    return JavaTemplate.apply("#{any(java.time.ZonedDateTime)}.withZoneSameInstant(#{any(java.time.ZoneId)})", getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
                 }
                 if (TO_DATE_MIDNIGHT.matches(method)) {
                     maybeAddImport("java.time.ZoneId");
@@ -235,9 +232,7 @@ public class JodaDateTimeToJavaTime extends Recipe {
 
                 // Chain expansion
                 if (WITH_DATE.matches(method)) {
-                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.withYear(#{any(int)}).withMonth(#{any(int)}).withDayOfMonth(#{any(int)})").build()
-                            .apply(getCursor(), m.getCoordinates().replace(),
-                            m.getSelect(), m.getArguments().get(0), m.getArguments().get(1), m.getArguments().get(2));
+                    return JavaTemplate.apply("#{any(java.time.ZonedDateTime)}.withYear(#{any(int)}).withMonth(#{any(int)}).withDayOfMonth(#{any(int)})", getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0), m.getArguments().get(1), m.getArguments().get(2));
                 }
                 if (WITH_DATE_LD.matches(method)) {
                     maybeAddImport("java.time.temporal.TemporalAdjuster");
@@ -247,10 +242,7 @@ public class JodaDateTimeToJavaTime extends Recipe {
                             m.getSelect(), m.getArguments().get(0));
                 }
                 if (WITH_TIME.matches(method)) {
-                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.withHour(#{any(int)}).withMinute(#{any(int)}).withSecond(#{any(int)}).withNano(#{any(int)} * 1_000_000)").build()
-                            .apply(getCursor(), m.getCoordinates().replace(),
-                            m.getSelect(), m.getArguments().get(0), m.getArguments().get(1),
-                            m.getArguments().get(2), m.getArguments().get(3));
+                    return JavaTemplate.apply("#{any(java.time.ZonedDateTime)}.withHour(#{any(int)}).withMinute(#{any(int)}).withSecond(#{any(int)}).withNano(#{any(int)} * 1_000_000)", getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0), m.getArguments().get(1), m.getArguments().get(2), m.getArguments().get(3));
                 }
                 if (WITH_TIME_LT.matches(method)) {
                     maybeAddImport("java.time.temporal.TemporalAdjuster");
@@ -260,9 +252,7 @@ public class JodaDateTimeToJavaTime extends Recipe {
                             m.getSelect(), m.getArguments().get(0));
                 }
                 if (WITH_TIME_AT_START.matches(method)) {
-                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.toLocalDate().atStartOfDay(#{any(java.time.ZonedDateTime)}.getZone())").build()
-                            .apply(getCursor(), m.getCoordinates().replace(),
-                            m.getSelect(), m.getSelect());
+                    return JavaTemplate.apply("#{any(java.time.ZonedDateTime)}.toLocalDate().atStartOfDay(#{any(java.time.ZonedDateTime)}.getZone())", getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getSelect());
                 }
 
                 // Duration-related
@@ -311,9 +301,7 @@ public class JodaDateTimeToJavaTime extends Recipe {
                             m.getSelect(), m.getArguments().get(0));
                 }
                 if (WITH_MILLIS_OF_SECOND.matches(method)) {
-                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.withNano(#{any(int)} * 1_000_000)").build()
-                            .apply(getCursor(), m.getCoordinates().replace(),
-                            m.getSelect(), m.getArguments().get(0));
+                    return JavaTemplate.apply("#{any(java.time.ZonedDateTime)}.withNano(#{any(int)} * 1_000_000)", getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
                 }
                 if (WITH_MILLIS_OF_DAY.matches(method)) {
                     maybeAddImport("java.time.temporal.ChronoField");
@@ -325,8 +313,7 @@ public class JodaDateTimeToJavaTime extends Recipe {
 
                 // AbstractDateTime getters that need structural changes
                 if (GET_DAY_OF_WEEK.matches(method)) {
-                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.getDayOfWeek().getValue()").build()
-                            .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
+                    return JavaTemplate.apply("#{any(java.time.ZonedDateTime)}.getDayOfWeek().getValue()", getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }
                 if (GET_MILLIS_OF_SECOND.matches(method)) {
                     maybeAddImport("java.time.temporal.ChronoField");
@@ -353,8 +340,7 @@ public class JodaDateTimeToJavaTime extends Recipe {
                             .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }
                 if (GET_MILLIS_BASE.matches(method)) {
-                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.toInstant().toEpochMilli()").build()
-                            .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
+                    return JavaTemplate.apply("#{any(java.time.ZonedDateTime)}.toInstant().toEpochMilli()", getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }
                 return m;
             }

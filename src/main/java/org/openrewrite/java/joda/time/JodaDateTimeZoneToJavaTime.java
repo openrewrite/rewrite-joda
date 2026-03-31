@@ -61,8 +61,7 @@ public class JodaDateTimeZoneToJavaTime extends Recipe {
                 }
                 if (FOR_TIMEZONE.matches(method)) {
                     maybeAddImport("java.time.ZoneId");
-                    return JavaTemplate.builder("#{any(java.util.TimeZone)}.toZoneId()").build()
-                            .apply(getCursor(), m.getCoordinates().replace(), m.getArguments().get(0));
+                    return JavaTemplate.apply("#{any(java.util.TimeZone)}.toZoneId()", getCursor(), m.getCoordinates().replace(), m.getArguments().get(0));
                 }
                 return m;
             }
