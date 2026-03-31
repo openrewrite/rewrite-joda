@@ -90,10 +90,7 @@ public class JodaFormatterToJavaTime extends Recipe {
                                     m.getArguments().get(0), m.getSelect());
                 }
                 if (PRINT_READABLE_INSTANT.matches(method)) {
-                    return JavaTemplate
-                            .builder("#{any(java.time.ZonedDateTime)}.format(#{any(java.time.format.DateTimeFormatter)})").build()
-                            .apply(getCursor(), m.getCoordinates().replace(),
-                                    m.getArguments().get(0), m.getSelect());
+                    return JavaTemplate.apply("#{any(java.time.ZonedDateTime)}.format(#{any(java.time.format.DateTimeFormatter)})", getCursor(), m.getCoordinates().replace(), m.getArguments().get(0), m.getSelect());
                 }
                 if (WITH_ZONE_UTC.matches(method)) {
                     maybeAddImport("java.time.ZoneOffset");

@@ -70,8 +70,7 @@ public class JodaDurationToJavaTime extends Recipe {
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation m = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                 if (TO_DURATION.matches(method)) {
-                    return JavaTemplate.builder("#{any(java.time.Duration)}").build()
-                            .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
+                    return JavaTemplate.apply("#{any(java.time.Duration)}", getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }
                 if (WITH_MILLIS.matches(method)) {
                     maybeAddImport("java.time.Duration");
@@ -80,24 +79,16 @@ public class JodaDurationToJavaTime extends Recipe {
                             .apply(getCursor(), m.getCoordinates().replace(), m.getArguments().get(0));
                 }
                 if (WITH_DURATION_ADDED_LONG.matches(method)) {
-                    return JavaTemplate.builder("#{any(java.time.Duration)}.plusMillis(#{any(long)} * #{any(int)})").build()
-                            .apply(getCursor(), m.getCoordinates().replace(),
-                                    m.getSelect(), m.getArguments().get(0), m.getArguments().get(1));
+                    return JavaTemplate.apply("#{any(java.time.Duration)}.plusMillis(#{any(long)} * #{any(int)})", getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0), m.getArguments().get(1));
                 }
                 if (WITH_DURATION_ADDED_RD.matches(method)) {
-                    return JavaTemplate.builder("#{any(java.time.Duration)}.plus(#{any(java.time.Duration)}.multipliedBy(#{any(int)}))").build()
-                            .apply(getCursor(), m.getCoordinates().replace(),
-                                    m.getSelect(), m.getArguments().get(0), m.getArguments().get(1));
+                    return JavaTemplate.apply("#{any(java.time.Duration)}.plus(#{any(java.time.Duration)}.multipliedBy(#{any(int)}))", getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0), m.getArguments().get(1));
                 }
                 if (PLUS_LONG.matches(method)) {
-                    return JavaTemplate.builder("#{any(java.time.Duration)}.plusMillis(#{any(long)})").build()
-                            .apply(getCursor(), m.getCoordinates().replace(),
-                                    m.getSelect(), m.getArguments().get(0));
+                    return JavaTemplate.apply("#{any(java.time.Duration)}.plusMillis(#{any(long)})", getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
                 }
                 if (MINUS_LONG.matches(method)) {
-                    return JavaTemplate.builder("#{any(java.time.Duration)}.minusMillis(#{any(long)})").build()
-                            .apply(getCursor(), m.getCoordinates().replace(),
-                                    m.getSelect(), m.getArguments().get(0));
+                    return JavaTemplate.apply("#{any(java.time.Duration)}.minusMillis(#{any(long)})", getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
                 }
                 return m;
             }

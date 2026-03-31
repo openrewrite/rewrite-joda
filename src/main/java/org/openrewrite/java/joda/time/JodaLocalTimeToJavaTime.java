@@ -97,19 +97,13 @@ public class JodaLocalTimeToJavaTime extends Recipe {
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation m = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                 if (PLUS_MILLIS.matches(method)) {
-                    return JavaTemplate.builder("#{any(java.time.LocalTime)}.plusNanos(#{any(int)} * 1_000_000L)").build()
-                            .apply(getCursor(), m.getCoordinates().replace(),
-                                    m.getSelect(), m.getArguments().get(0));
+                    return JavaTemplate.apply("#{any(java.time.LocalTime)}.plusNanos(#{any(int)} * 1_000_000L)", getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
                 }
                 if (MINUS_MILLIS.matches(method)) {
-                    return JavaTemplate.builder("#{any(java.time.LocalTime)}.minusNanos(#{any(int)} * 1_000_000L)").build()
-                            .apply(getCursor(), m.getCoordinates().replace(),
-                                    m.getSelect(), m.getArguments().get(0));
+                    return JavaTemplate.apply("#{any(java.time.LocalTime)}.minusNanos(#{any(int)} * 1_000_000L)", getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
                 }
                 if (WITH_MILLIS_OF_SECOND.matches(method)) {
-                    return JavaTemplate.builder("#{any(java.time.LocalTime)}.withNano(#{any(int)} * 1_000_000)").build()
-                            .apply(getCursor(), m.getCoordinates().replace(),
-                                    m.getSelect(), m.getArguments().get(0));
+                    return JavaTemplate.apply("#{any(java.time.LocalTime)}.withNano(#{any(int)} * 1_000_000)", getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
                 }
                 if (GET_MILLIS_OF_SECOND.matches(method)) {
                     maybeAddImport("java.time.temporal.ChronoField");

@@ -108,18 +108,13 @@ public class JodaAbstractInstantToJavaTime extends Recipe {
                             .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }
                 if (TO_STRING_FORMATTER.matches(method)) {
-                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.format(#{any(java.time.format.DateTimeFormatter)})")
-                            .build()
-                            .apply(getCursor(), m.getCoordinates().replace(),
-                                    m.getSelect(), m.getArguments().get(0));
+                    return JavaTemplate.apply("#{any(java.time.ZonedDateTime)}.format(#{any(java.time.format.DateTimeFormatter)})", getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
                 }
                 if (TO_INSTANT.matches(method)) {
-                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.toInstant()").build()
-                            .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
+                    return JavaTemplate.apply("#{any(java.time.ZonedDateTime)}.toInstant()", getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }
                 if (GET_MILLIS.matches(method)) {
-                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.toInstant().toEpochMilli()").build()
-                            .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
+                    return JavaTemplate.apply("#{any(java.time.ZonedDateTime)}.toInstant().toEpochMilli()", getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }
                 return m;
             }
