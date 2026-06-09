@@ -13,3 +13,5 @@ bin/
 .gitmodules
 Sonar.MD
 working-set*/
+
+.context/
