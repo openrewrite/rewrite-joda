@@ -103,10 +103,6 @@ recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: "org.joda.time.DateTimeZone forID(String)"
       newMethodName: of
-  # DateTimeFormat
-  - org.openrewrite.java.ChangeMethodName:
-      methodPattern: "org.joda.time.format.DateTimeFormat forPattern(String)"
-      newMethodName: ofPattern
   # Instant
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: "org.joda.time.Instant getMillis()"
@@ -157,6 +153,7 @@ recipeList:
   - org.openrewrite.java.joda.time.JodaLocalDateToJavaTime
   - org.openrewrite.java.joda.time.JodaLocalTimeToJavaTime
   - org.openrewrite.java.joda.time.JodaFormatterToJavaTime
+  - org.openrewrite.java.joda.time.JodaPropertyToJavaTime
   - org.openrewrite.java.joda.time.JodaDateTimeZoneToJavaTime
   - org.openrewrite.java.joda.time.JodaDateMidnightToJavaTime
   - org.openrewrite.java.joda.time.JodaInstantToJavaTime
