@@ -286,3 +286,19 @@ Many methods survive a type change by name only. Joda-Time's `getDayOfWeek()` re
 `DayOfWeek`; `toStandardDays()` returns `Days`, the renamed `toDays()` a `long`; `DateTimeFormat.forPattern`
 and `DateTimeFormatter.ofPattern` read `Y`, `ZZ` and `ZZZ` differently. Compare return types and argument
 semantics, not just names, and translate string arguments such as patterns rather than copying them.
+
+### Never change a type unless every use of it was migrated
+A `ChangeType` that runs after a fixed set of method rewrites turns every unhandled method, constructor or
+overload into a compile error. Evaluated on 13 real repositories, the Joda-Time migration broke every build it
+touched this way. `JodaTimeToJavaTime` therefore dry-runs the whole migration per file and checks the result
+before applying it: leftover old types, methods that do not exist on the new type (checked by reflection),
+incompatible assignments and duplicate method signatures all leave the file unchanged, with the reason in a
+data table. Refusing to rewrite (returning the tree unchanged) is then always safe, because the gate notices
+what is left behind.
+
+### Files that share signatures must migrate together
+Changing the return type of a method in one file breaks its callers and overrides in other files. Group files
+connected through method signatures and fields that mention the old type (`TypesInUse.getUsedMethods()`,
+`getDeclaredMethods()` with `TypeUtils.findOverriddenMethod()`, and `getVariables()`), and migrate a group only
+when all of its files can be migrated. Anonymous classes (`Outer$1`) are not class declarations, so resolve
+them to their enclosing type.

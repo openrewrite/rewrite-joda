@@ -38,6 +38,7 @@ class NoJodaTimeTest implements RewriteTest {
     @Test
     void migrateJodaTime() {
         rewriteRun(
+          spec -> spec.expectedCyclesThatMakeChanges(2),
           mavenProject("foo",
             srcMainJava(
               // language=java

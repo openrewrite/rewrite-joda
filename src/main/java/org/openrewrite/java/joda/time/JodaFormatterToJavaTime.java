@@ -108,11 +108,13 @@ public class JodaFormatterToJavaTime extends Recipe {
                                 .imports("java.time.format.DateTimeFormatter").build()
                                 .apply(getCursor(), m.getCoordinates().replace());
                     }
-                    // a pattern that can not be checked is used as is
-                    maybeAddImport("java.time.format.DateTimeFormatter");
-                    return JavaTemplate.builder("DateTimeFormatter.ofPattern(#{any(String)})")
-                            .imports("java.time.format.DateTimeFormatter").build()
-                            .apply(getCursor(), m.getCoordinates().replace(), pattern);
+                    if (isUnchangedConstant(pattern)) {
+                        maybeAddImport("java.time.format.DateTimeFormatter");
+                        return JavaTemplate.builder("DateTimeFormatter.ofPattern(#{any(String)})")
+                                .imports("java.time.format.DateTimeFormatter").build()
+                                .apply(getCursor(), m.getCoordinates().replace(), pattern);
+                    }
+                    return m;
                 }
                 if (STYLE.matches(method) && STYLES.containsKey(m.getSimpleName())) {
                     maybeAddImport("java.time.format.DateTimeFormatter");
@@ -207,17 +209,19 @@ public class JodaFormatterToJavaTime extends Recipe {
             }
 
             /// Joda-Time fills in the fields that the text does not have: the zone of the formatter or the default zone,
-            /// and the start of the day. `java.time` only parses what is there, so when the pattern of the formatter is
-            /// known to be date only, the day is started explicitly.
+            /// and the start of the day. `java.time` only parses what is there, so the parse is only migrated when the
+            /// pattern of the formatter is known.
             private J parseZoned(J.MethodInvocation m, Expression text, @Nullable Expression formatter, String suffix) {
-                if (formatter == null) {
+                String pattern = formatter == null ? null : patternOf(formatter);
+                if (formatter == null || pattern == null || !hasLetter(pattern, "yYu") || !hasLetter(pattern, "ML") || !hasLetter(pattern, "dD")) {
                     return m;
                 }
-                String pattern = patternOf(formatter);
                 boolean zoned = hasZone(formatter);
                 maybeAddImport("java.time.ZonedDateTime");
-                if (pattern != null && hasLetter(pattern, "yYu") && hasLetter(pattern, "ML") && hasLetter(pattern, "dD") &&
-                    !hasLetter(pattern, "HhKkmsS") && (!zoned || JodaDateTimeToJavaTime.isSimple(formatter))) {
+                if (!hasLetter(pattern, "HhKkmsS")) {
+                    if (zoned && !JodaDateTimeToJavaTime.isSimple(formatter)) {
+                        return m;
+                    }
                     maybeAddImport("java.time.LocalDate");
                     maybeAddImport("java.time.ZoneId");
                     return JavaTemplate.builder("LocalDate.parse(#{any(java.lang.String)}, #{any(java.time.format.DateTimeFormatter)}).atStartOfDay(" +
@@ -278,6 +282,15 @@ public class JodaFormatterToJavaTime extends Recipe {
                     return translatePattern((String) ((J.Literal) pattern).getValue());
                 }
                 return null;
+            }
+
+            private boolean isUnchangedConstant(Expression pattern) {
+                Expression initializer = initializer(pattern);
+                if (initializer instanceof J.Literal && ((J.Literal) initializer).getValue() instanceof String) {
+                    String value = (String) ((J.Literal) initializer).getValue();
+                    return value.equals(translatePattern(value));
+                }
+                return false;
             }
 
             private @Nullable Expression initializer(Expression expression) {
