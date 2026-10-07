@@ -73,4 +73,82 @@ class JodaDateTimeZoneToJavaTimeTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void dateTimeZoneAccessors() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.joda.time.DateTimeZone;
+
+              import java.util.TimeZone;
+
+              class A {
+                  String id() {
+                      return DateTimeZone.getDefault().getID();
+                  }
+
+                  TimeZone timeZone(DateTimeZone zone) {
+                      return zone.toTimeZone();
+                  }
+              }
+              """,
+            """
+              import java.time.ZoneId;
+              import java.util.TimeZone;
+
+              class A {
+                  String id() {
+                      return ZoneId.systemDefault().getId();
+                  }
+
+                  TimeZone timeZone(ZoneId zone) {
+                      return TimeZone.getTimeZone(zone);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void utcThroughStaticImportAndFullyQualified() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.joda.time.DateTime;
+
+              import static org.joda.time.DateTimeZone.UTC;
+
+              class A {
+                  DateTime now() {
+                      return DateTime.now(UTC);
+                  }
+
+                  Object utc() {
+                      return org.joda.time.DateTimeZone.UTC;
+                  }
+              }
+              """,
+            """
+              import java.time.ZoneOffset;
+              import java.time.ZonedDateTime;
+
+              import static java.time.ZoneOffset.UTC;
+
+              class A {
+                  ZonedDateTime now() {
+                      return ZonedDateTime.now(UTC);
+                  }
+
+                  Object utc() {
+                      return ZoneOffset.UTC;
+                  }
+              }
+              """
+          )
+        );
+    }
 }

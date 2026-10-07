@@ -51,7 +51,7 @@ class JodaInstantToJavaTimeTest implements RewriteTest {
                       Instant.now().getMillis();
                       Instant.now().minus(Duration.standardDays(1L));
                       Instant.ofEpochMilli(1234567890L);
-                      Instant.parse("2024-10-25T15:45:00");
+                      Instant.parse("2024-10-25T15:45:00Z");
                       Instant.now().plus(Duration.standardDays(1L));
                   }
               }
@@ -66,8 +66,51 @@ class JodaInstantToJavaTimeTest implements RewriteTest {
                       Instant.now().toEpochMilli();
                       Instant.now().minus(Duration.ofDays(1L));
                       Instant.ofEpochMilli(1234567890L);
-                      Instant.parse("2024-10-25T15:45:00");
+                      Instant.parse("2024-10-25T15:45:00Z");
                       Instant.now().plus(Duration.ofDays(1L));
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void instants() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.joda.time.Instant;
+              import org.joda.time.Interval;
+
+              import java.util.Date;
+
+              class A {
+                  Interval between(long millis, Instant end) {
+                      Instant start = new Instant(millis);
+                      return new Interval(start.plus(1000), end);
+                  }
+
+                  Date date(Instant i) {
+                      return i.toDate();
+                  }
+              }
+              """,
+            """
+              import org.threeten.extra.Interval;
+
+              import java.time.Instant;
+              import java.util.Date;
+
+              class A {
+                  Interval between(long millis, Instant end) {
+                      Instant start = Instant.ofEpochMilli(millis);
+                      return Interval.of(start.plusMillis(1000), end);
+                  }
+
+                  Date date(Instant i) {
+                      return Date.from(i);
                   }
               }
               """

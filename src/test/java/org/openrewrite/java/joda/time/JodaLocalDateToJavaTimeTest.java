@@ -86,4 +86,44 @@ class JodaLocalDateToJavaTimeTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void localDateToDate() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.joda.time.LocalDate;
+
+              import java.util.Date;
+
+              class A {
+                  Date date(LocalDate d) {
+                      return d.toDate();
+                  }
+
+                  LocalDate fromDate(Date d) {
+                      return new LocalDate(d);
+                  }
+              }
+              """,
+            """
+              import java.time.Instant;
+              import java.time.LocalDate;
+              import java.time.ZoneId;
+              import java.util.Date;
+
+              class A {
+                  Date date(LocalDate d) {
+                      return Date.from(d.atStartOfDay(ZoneId.systemDefault()).toInstant());
+                  }
+
+                  LocalDate fromDate(Date d) {
+                      return Instant.ofEpochMilli(d.getTime()).atZone(ZoneId.systemDefault()).toLocalDate();
+                  }
+              }
+              """
+          )
+        );
+    }
 }

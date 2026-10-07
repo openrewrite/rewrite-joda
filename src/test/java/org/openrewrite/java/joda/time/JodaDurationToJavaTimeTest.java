@@ -117,11 +117,11 @@ class JodaDurationToJavaTimeTest implements RewriteTest {
               import org.joda.time.Duration;
 
               class A {
-                  public void foo() {
-                      new Duration(1000L).toStandardDays();
-                      new Duration(1000L).toStandardHours();
-                      new Duration(1000L).toStandardMinutes();
-                      new Duration(1000L).toStandardSeconds();
+                  public void foo(Duration d) {
+                      int days = d.toStandardDays().getDays();
+                      int hours = d.toStandardHours().getHours();
+                      int minutes = d.toStandardMinutes().getMinutes();
+                      int seconds = d.toStandardSeconds().getSeconds();
                   }
               }
               """,
@@ -129,11 +129,11 @@ class JodaDurationToJavaTimeTest implements RewriteTest {
               import java.time.Duration;
 
               class A {
-                  public void foo() {
-                      Duration.ofMillis(1000L).toDays();
-                      Duration.ofMillis(1000L).toHours();
-                      Duration.ofMillis(1000L).toMinutes();
-                      Duration.ofMillis(1000L).getSeconds();
+                  public void foo(Duration d) {
+                      int days = (int) d.toDays();
+                      int hours = (int) d.toHours();
+                      int minutes = (int) d.toMinutes();
+                      int seconds = (int) d.getSeconds();
                   }
               }
               """
@@ -197,6 +197,42 @@ class JodaDurationToJavaTimeTest implements RewriteTest {
                   public void foo() {
                       Duration d = Duration.ofMillis(100);
                       d.toMillis();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void durationThroughInterface() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.joda.time.Duration;
+              import org.joda.time.ReadableDuration;
+
+              class A {
+                  long millis(ReadableDuration d) {
+                      return d.getMillis();
+                  }
+
+                  int seconds() {
+                      return Duration.standardHours(8).toStandardSeconds().getSeconds();
+                  }
+              }
+              """,
+            """
+              import java.time.Duration;
+
+              class A {
+                  long millis(Duration d) {
+                      return d.toMillis();
+                  }
+
+                  int seconds() {
+                      return (int) Duration.ofHours(8).getSeconds();
                   }
               }
               """

@@ -78,8 +78,8 @@ class JodaDateTimeToJavaTimeTest implements RewriteTest {
                       ZonedDateTime.of(2024, 9, 30, 12, 58, 0, 0, ZoneOffset.ofHours(2));
                       ZonedDateTime.of(2024, 9, 30, 13, 3, 15, 0, ZoneId.systemDefault());
                       ZonedDateTime.of(2024, 9, 30, 13, 3, 15, 0, ZoneOffset.ofHoursMinutes(5, 30));
-                      ZonedDateTime.of(2024, 9, 30, 13, 49, 15, 545 * 1_000_000, ZoneId.systemDefault());
-                      ZonedDateTime.of(2024, 9, 30, 13, 49, 15, 545 * 1_000_000, TimeZone.getTimeZone("America/New_York").toZoneId());
+                      ZonedDateTime.of(2024, 9, 30, 13, 49, 15, 545_000_000, ZoneId.systemDefault());
+                      ZonedDateTime.of(2024, 9, 30, 13, 49, 15, 545_000_000, TimeZone.getTimeZone("America/New_York").toZoneId());
                   }
               }
               """
@@ -194,6 +194,7 @@ class JodaDateTimeToJavaTimeTest implements RewriteTest {
               import java.time.ZoneId;
               import java.time.ZonedDateTime;
               import java.time.temporal.ChronoField;
+              import java.time.temporal.ChronoUnit;
               import java.time.temporal.IsoFields;
               import java.util.TimeZone;
 
@@ -207,7 +208,7 @@ class JodaDateTimeToJavaTimeTest implements RewriteTest {
                       ZonedDateTime.now().withEarlierOffsetAtOverlap();
                       ZonedDateTime.now().withLaterOffsetAtOverlap();
                       ZonedDateTime.now().withYear(2024).withMonth(9).withDayOfMonth(30);
-                      ZonedDateTime.now().withHour(12).withMinute(58).withSecond(57).withNano(550 * 1_000_000);
+                      ZonedDateTime.now().withHour(12).withMinute(58).withSecond(57).withNano(550_000_000);
                       ZonedDateTime.now().plus(Duration.ofMillis(1234567890L).multipliedBy(2));
                       ZonedDateTime.now().plus(Duration.ofMillis(1234567890L));
                       ZonedDateTime.now().plus(Duration.ofDays(1));
@@ -235,16 +236,16 @@ class JodaDateTimeToJavaTimeTest implements RewriteTest {
                       ZonedDateTime.now().withYear(2024);
                       ZonedDateTime.now().with(IsoFields.WEEK_BASED_YEAR, 2024);
                       ZonedDateTime.now().withMonth(9);
-                      ZonedDateTime.now().with(ChronoField.ALIGNED_WEEK_OF_YEAR, 39);
+                      ZonedDateTime.now().with(IsoFields.WEEK_OF_WEEK_BASED_YEAR, 39);
                       ZonedDateTime.now().withDayOfYear(273);
                       ZonedDateTime.now().withDayOfMonth(30);
                       ZonedDateTime.now().with(ChronoField.DAY_OF_WEEK, 1);
                       ZonedDateTime.now().withHour(12);
                       ZonedDateTime.now().withMinute(58);
                       ZonedDateTime.now().withSecond(57);
-                      ZonedDateTime.now().withNano(550 * 1_000_000);
+                      ZonedDateTime.now().withNano(550_000_000);
                       ZonedDateTime.now().with(ChronoField.MILLI_OF_DAY, 123456);
-                      ZonedDateTime.now().toLocalDate().atStartOfDay(ZonedDateTime.now().getZone());
+                      ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS);
                   }
               }
               """
@@ -279,6 +280,7 @@ class JodaDateTimeToJavaTimeTest implements RewriteTest {
             """
               import java.time.ZonedDateTime;
               import java.time.temporal.ChronoField;
+              import java.time.temporal.IsoFields;
 
               class A {
                   public void foo() {
@@ -291,7 +293,7 @@ class JodaDateTimeToJavaTimeTest implements RewriteTest {
                       ZonedDateTime.now().getMonthValue();
                       ZonedDateTime.now().get(ChronoField.SECOND_OF_DAY);
                       ZonedDateTime.now().getSecond();
-                      ZonedDateTime.now().get(ChronoField.ALIGNED_WEEK_OF_YEAR);
+                      ZonedDateTime.now().get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
                       ZonedDateTime.now().toString();
                   }
               }
@@ -320,6 +322,111 @@ class JodaDateTimeToJavaTimeTest implements RewriteTest {
               class A {
                   public void foo() {
                       long millis = ZonedDateTime.now().toInstant().toEpochMilli();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void dateTimeFromObjects() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.joda.time.DateTime;
+              import org.joda.time.DateTimeZone;
+
+              import java.util.Date;
+
+              class A {
+                  DateTime fromDate(Date d) {
+                      return new DateTime(d);
+                  }
+
+                  DateTime fromLong(Long millis, DateTimeZone zone) {
+                      return new DateTime(millis, zone);
+                  }
+              }
+              """,
+            """
+              import java.time.Instant;
+              import java.time.ZoneId;
+              import java.time.ZonedDateTime;
+              import java.util.Date;
+
+              class A {
+                  ZonedDateTime fromDate(Date d) {
+                      return ZonedDateTime.ofInstant(Instant.ofEpochMilli(d.getTime()), ZoneId.systemDefault());
+                  }
+
+                  ZonedDateTime fromLong(Long millis, ZoneId zone) {
+                      return ZonedDateTime.ofInstant(Instant.ofEpochMilli(millis), zone);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void weekOfWeekyearIsAnIsoField() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.joda.time.DateTime;
+
+              class A {
+                  int week(DateTime d) {
+                      return d.getWeekOfWeekyear();
+                  }
+              }
+              """,
+            """
+              import java.time.ZonedDateTime;
+              import java.time.temporal.IsoFields;
+
+              class A {
+                  int week(ZonedDateTime d) {
+                      return d.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void foldLiteralMillis() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.joda.time.DateTime;
+
+              class A {
+                  DateTime dt() {
+                      return new DateTime(2024, 1, 2, 3, 4, 5, 0);
+                  }
+
+                  DateTime millis(DateTime dt) {
+                      return dt.withMillisOfSecond(250);
+                  }
+              }
+              """,
+            """
+              import java.time.ZoneId;
+              import java.time.ZonedDateTime;
+
+              class A {
+                  ZonedDateTime dt() {
+                      return ZonedDateTime.of(2024, 1, 2, 3, 4, 5, 0, ZoneId.systemDefault());
+                  }
+
+                  ZonedDateTime millis(ZonedDateTime dt) {
+                      return dt.withNano(250_000_000);
                   }
               }
               """

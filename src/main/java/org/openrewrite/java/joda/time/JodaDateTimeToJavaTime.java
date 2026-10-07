@@ -25,7 +25,16 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
+import org.jspecify.annotations.Nullable;
+import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.TypeUtils;
+
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
@@ -44,6 +53,8 @@ public class JodaDateTimeToJavaTime extends Recipe {
     private static final MethodMatcher NEW_DT_6 = new MethodMatcher("org.joda.time.DateTime <constructor>(int, int, int, int, int, int)");
     private static final MethodMatcher NEW_DT_6_ZONE = new MethodMatcher("org.joda.time.DateTime <constructor>(int, int, int, int, int, int, org.joda.time.DateTimeZone)");
     private static final MethodMatcher NEW_DT_7 = new MethodMatcher("org.joda.time.DateTime <constructor>(int, int, int, int, int, int, int)");
+    private static final MethodMatcher NEW_DT_OBJECT = new MethodMatcher("org.joda.time.DateTime <constructor>(Object)");
+    private static final MethodMatcher NEW_DT_OBJECT_ZONE = new MethodMatcher("org.joda.time.DateTime <constructor>(Object, org.joda.time.DateTimeZone)");
     private static final MethodMatcher NEW_DT_7_ZONE = new MethodMatcher("org.joda.time.DateTime <constructor>(int, int, int, int, int, int, int, org.joda.time.DateTimeZone)");
 
     // Static factory matchers
@@ -79,6 +90,7 @@ public class JodaDateTimeToJavaTime extends Recipe {
     private static final MethodMatcher GET_MINUTE_OF_DAY = new MethodMatcher("org.joda.time.base.AbstractDateTime getMinuteOfDay()");
     private static final MethodMatcher GET_SECOND_OF_DAY = new MethodMatcher("org.joda.time.base.AbstractDateTime getSecondOfDay()");
     private static final MethodMatcher GET_WEEK_OF_WEEKYEAR = new MethodMatcher("org.joda.time.base.AbstractDateTime getWeekOfWeekyear()");
+    private static final MethodMatcher GET_WEEKYEAR = new MethodMatcher("org.joda.time.base.AbstractDateTime getWeekyear()");
     private static final MethodMatcher GET_MILLIS_BASE = new MethodMatcher("org.joda.time.base.BaseDateTime getMillis()");
 
     @Override
@@ -95,7 +107,7 @@ public class JodaDateTimeToJavaTime extends Recipe {
                 }
                 if (NEW_DT_ZONE.matches(newClass)) {
                     maybeAddImport("java.time.ZonedDateTime");
-                    return JavaTemplate.builder("ZonedDateTime.now(#{any(java.time.ZoneOffset)})")
+                    return JavaTemplate.builder("ZonedDateTime.now(#{any(java.time.ZoneId)})")
                             .imports("java.time.ZonedDateTime").build()
                             .apply(getCursor(), nc.getCoordinates().replace(), nc.getArguments().get(0));
                 }
@@ -156,21 +168,22 @@ public class JodaDateTimeToJavaTime extends Recipe {
                 if (NEW_DT_7.matches(newClass)) {
                     maybeAddImport("java.time.ZonedDateTime");
                     maybeAddImport("java.time.ZoneId");
-                    return JavaTemplate.builder("ZonedDateTime.of(#{any(int)}, #{any(int)}, #{any(int)}, #{any(int)}, #{any(int)}, #{any(int)}, #{any(int)} * 1_000_000, ZoneId.systemDefault())")
+                    List<Expression> args = new ArrayList<>(nc.getArguments());
+                    String nanos = nanos(args, 6);
+                    return JavaTemplate.builder("ZonedDateTime.of(#{any(int)}, #{any(int)}, #{any(int)}, #{any(int)}, #{any(int)}, #{any(int)}, " + nanos + ", ZoneId.systemDefault())")
                             .imports("java.time.ZonedDateTime", "java.time.ZoneId").build()
-                            .apply(getCursor(), nc.getCoordinates().replace(),
-                            nc.getArguments().get(0), nc.getArguments().get(1), nc.getArguments().get(2),
-                            nc.getArguments().get(3), nc.getArguments().get(4), nc.getArguments().get(5),
-                            nc.getArguments().get(6));
+                            .apply(getCursor(), nc.getCoordinates().replace(), args.toArray());
                 }
                 if (NEW_DT_7_ZONE.matches(newClass)) {
                     maybeAddImport("java.time.ZonedDateTime");
-                    return JavaTemplate.builder("ZonedDateTime.of(#{any(int)}, #{any(int)}, #{any(int)}, #{any(int)}, #{any(int)}, #{any(int)}, #{any(int)} * 1_000_000, #{any(java.time.ZoneId)})")
+                    List<Expression> args = new ArrayList<>(nc.getArguments());
+                    String nanos = nanos(args, 6);
+                    return JavaTemplate.builder("ZonedDateTime.of(#{any(int)}, #{any(int)}, #{any(int)}, #{any(int)}, #{any(int)}, #{any(int)}, " + nanos + ", #{any(java.time.ZoneId)})")
                             .imports("java.time.ZonedDateTime").build()
-                            .apply(getCursor(), nc.getCoordinates().replace(),
-                            nc.getArguments().get(0), nc.getArguments().get(1), nc.getArguments().get(2),
-                            nc.getArguments().get(3), nc.getArguments().get(4), nc.getArguments().get(5),
-                            nc.getArguments().get(6), nc.getArguments().get(7));
+                            .apply(getCursor(), nc.getCoordinates().replace(), args.toArray());
+                }
+                if (NEW_DT_OBJECT.matches(newClass) || NEW_DT_OBJECT_ZONE.matches(newClass)) {
+                    return fromObject(nc);
                 }
                 return nc;
             }
@@ -188,7 +201,7 @@ public class JodaDateTimeToJavaTime extends Recipe {
                 }
                 if (DT_NOW_ZONE.matches(method)) {
                     maybeAddImport("java.time.ZonedDateTime");
-                    return JavaTemplate.builder("ZonedDateTime.now(#{any(java.time.ZoneOffset)})")
+                    return JavaTemplate.builder("ZonedDateTime.now(#{any(java.time.ZoneId)})")
                             .imports("java.time.ZonedDateTime").build()
                             .apply(getCursor(), m.getCoordinates().replace(), m.getArguments().get(0));
                 }
@@ -213,11 +226,8 @@ public class JodaDateTimeToJavaTime extends Recipe {
                 if (TO_DATE_TIME_ZONE.matches(method)) {
                     return JavaTemplate.apply("#{any(java.time.ZonedDateTime)}.withZoneSameInstant(#{any(java.time.ZoneId)})", getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
                 }
-                if (TO_DATE_MIDNIGHT.matches(method)) {
-                    maybeAddImport("java.time.ZoneId");
-                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.toLocalDate().atStartOfDay(ZoneId.systemDefault())")
-                            .imports("java.time.ZoneId").build()
-                            .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
+                if (TO_DATE_MIDNIGHT.matches(method) || WITH_TIME_AT_START.matches(method)) {
+                    return startOfDay(m);
                 }
 
                 // Arg reordering: withMillis(arg) -> ZonedDateTime.ofInstant(Instant.ofEpochMilli(arg), select.getZone())
@@ -242,7 +252,11 @@ public class JodaDateTimeToJavaTime extends Recipe {
                             m.getSelect(), m.getArguments().get(0));
                 }
                 if (WITH_TIME.matches(method)) {
-                    return JavaTemplate.apply("#{any(java.time.ZonedDateTime)}.withHour(#{any(int)}).withMinute(#{any(int)}).withSecond(#{any(int)}).withNano(#{any(int)} * 1_000_000)", getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0), m.getArguments().get(1), m.getArguments().get(2), m.getArguments().get(3));
+                    List<Expression> args = new ArrayList<>(m.getArguments());
+                    String nanos = nanos(args, 3);
+                    args.add(0, m.getSelect());
+                    return JavaTemplate.apply("#{any(java.time.ZonedDateTime)}.withHour(#{any(int)}).withMinute(#{any(int)}).withSecond(#{any(int)}).withNano(" + nanos + ")",
+                            getCursor(), m.getCoordinates().replace(), args.toArray());
                 }
                 if (WITH_TIME_LT.matches(method)) {
                     maybeAddImport("java.time.temporal.TemporalAdjuster");
@@ -250,9 +264,6 @@ public class JodaDateTimeToJavaTime extends Recipe {
                             .imports("java.time.temporal.TemporalAdjuster").build()
                             .apply(getCursor(), m.getCoordinates().replace(),
                             m.getSelect(), m.getArguments().get(0));
-                }
-                if (WITH_TIME_AT_START.matches(method)) {
-                    return JavaTemplate.apply("#{any(java.time.ZonedDateTime)}.toLocalDate().atStartOfDay(#{any(java.time.ZonedDateTime)}.getZone())", getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getSelect());
                 }
 
                 // Duration-related
@@ -265,14 +276,14 @@ public class JodaDateTimeToJavaTime extends Recipe {
                 }
                 if (PLUS_LONG.matches(method) || PLUS_MILLIS.matches(method)) {
                     maybeAddImport("java.time.Duration");
-                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.plus(Duration.ofMillis(#{any(int)}))")
+                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.plus(Duration.ofMillis(#{any(long)}))")
                             .imports("java.time.Duration").build()
                             .apply(getCursor(), m.getCoordinates().replace(),
                             m.getSelect(), m.getArguments().get(0));
                 }
                 if (MINUS_LONG.matches(method) || MINUS_MILLIS.matches(method)) {
                     maybeAddImport("java.time.Duration");
-                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.minus(Duration.ofMillis(#{any(int)}))")
+                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.minus(Duration.ofMillis(#{any(long)}))")
                             .imports("java.time.Duration").build()
                             .apply(getCursor(), m.getCoordinates().replace(),
                             m.getSelect(), m.getArguments().get(0));
@@ -287,9 +298,9 @@ public class JodaDateTimeToJavaTime extends Recipe {
                             m.getSelect(), m.getArguments().get(0));
                 }
                 if (WITH_WEEK_OF_WEEKYEAR.matches(method)) {
-                    maybeAddImport("java.time.temporal.ChronoField");
-                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.with(ChronoField.ALIGNED_WEEK_OF_YEAR, #{any(int)})")
-                            .imports("java.time.temporal.ChronoField").build()
+                    maybeAddImport("java.time.temporal.IsoFields");
+                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.with(IsoFields.WEEK_OF_WEEK_BASED_YEAR, #{any(int)})")
+                            .imports("java.time.temporal.IsoFields").build()
                             .apply(getCursor(), m.getCoordinates().replace(),
                             m.getSelect(), m.getArguments().get(0));
                 }
@@ -301,7 +312,11 @@ public class JodaDateTimeToJavaTime extends Recipe {
                             m.getSelect(), m.getArguments().get(0));
                 }
                 if (WITH_MILLIS_OF_SECOND.matches(method)) {
-                    return JavaTemplate.apply("#{any(java.time.ZonedDateTime)}.withNano(#{any(int)} * 1_000_000)", getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
+                    List<Expression> args = new ArrayList<>(m.getArguments());
+                    String nanos = nanos(args, 0);
+                    args.add(0, m.getSelect());
+                    return JavaTemplate.apply("#{any(java.time.ZonedDateTime)}.withNano(" + nanos + ")",
+                            getCursor(), m.getCoordinates().replace(), args.toArray());
                 }
                 if (WITH_MILLIS_OF_DAY.matches(method)) {
                     maybeAddImport("java.time.temporal.ChronoField");
@@ -334,9 +349,15 @@ public class JodaDateTimeToJavaTime extends Recipe {
                             .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }
                 if (GET_WEEK_OF_WEEKYEAR.matches(method)) {
-                    maybeAddImport("java.time.temporal.ChronoField");
-                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.get(ChronoField.ALIGNED_WEEK_OF_YEAR)")
-                            .imports("java.time.temporal.ChronoField").build()
+                    maybeAddImport("java.time.temporal.IsoFields");
+                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR)")
+                            .imports("java.time.temporal.IsoFields").build()
+                            .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
+                }
+                if (GET_WEEKYEAR.matches(method)) {
+                    maybeAddImport("java.time.temporal.IsoFields");
+                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.get(IsoFields.WEEK_BASED_YEAR)")
+                            .imports("java.time.temporal.IsoFields").build()
                             .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }
                 if (GET_MILLIS_BASE.matches(method)) {
@@ -344,6 +365,92 @@ public class JodaDateTimeToJavaTime extends Recipe {
                 }
                 return m;
             }
+
+            private J startOfDay(J.MethodInvocation m) {
+                if (isSimple(m.getSelect())) {
+                    return JavaTemplate.apply("#{any(java.time.ZonedDateTime)}.toLocalDate().atStartOfDay(#{any(java.time.ZonedDateTime)}.getZone())",
+                            getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getSelect());
+                }
+                // evaluates the receiver once; only differs from the above when midnight falls in a daylight saving gap
+                maybeAddImport("java.time.temporal.ChronoUnit");
+                return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.truncatedTo(ChronoUnit.DAYS)")
+                        .imports("java.time.temporal.ChronoUnit").build()
+                        .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
+            }
+
+            private J fromObject(J.NewClass nc) {
+                Expression instant = nc.getArguments().get(0);
+                boolean withZone = nc.getArguments().size() == 2;
+                String zone = withZone ? "#{any(java.time.ZoneId)}" : "ZoneId.systemDefault()";
+                String code;
+                List<Expression> parameters = new ArrayList<>();
+                parameters.add(instant);
+                if (TypeUtils.isAssignableTo("java.util.Date", instant.getType())) {
+                    // `Date.toInstant()` throws for a `java.sql.Date`
+                    code = "ZonedDateTime.ofInstant(Instant.ofEpochMilli(#{any(java.util.Date)}.getTime()), " + zone + ")";
+                } else if (!withZone && isIsoZonedDateTime(instant)) {
+                    // Joda-Time converts the parsed date time to the default zone
+                    code = "ZonedDateTime.parse(#{any(String)}).withZoneSameInstant(ZoneId.systemDefault())";
+                } else if (TypeUtils.isOfClassType(instant.getType(), "java.lang.Long")) {
+                    code = "ZonedDateTime.ofInstant(Instant.ofEpochMilli(#{any(long)}), " + zone + ")";
+                } else if (TypeUtils.isAssignableTo("java.util.Calendar", instant.getType()) && isSimple(instant)) {
+                    if (withZone) {
+                        code = "ZonedDateTime.ofInstant(#{any(java.util.Calendar)}.toInstant(), " + zone + ")";
+                    } else {
+                        code = "ZonedDateTime.ofInstant(#{any(java.util.Calendar)}.toInstant(), #{any(java.util.Calendar)}.getTimeZone().toZoneId())";
+                        parameters.add(instant);
+                    }
+                } else if (JodaTimeTypes.isDateTime(instant.getType())) {
+                    // keeps the zone of the given date time, like Joda-Time does
+                    code = withZone ? "#{any(java.time.ZonedDateTime)}.withZoneSameInstant(" + zone + ")" : "#{any(java.time.ZonedDateTime)}";
+                } else if (JodaTimeTypes.isInstant(instant.getType())) {
+                    // a Joda-Time `Instant` is in UTC
+                    code = "#{any(java.time.Instant)}.atZone(" + (withZone ? zone : "ZoneOffset.UTC") + ")";
+                } else {
+                    return nc;
+                }
+                if (withZone) {
+                    parameters.add(nc.getArguments().get(1));
+                }
+                maybeAddImport("java.time.ZonedDateTime");
+                maybeAddImport("java.time.Instant");
+                maybeAddImport("java.time.ZoneId");
+                maybeAddImport("java.time.ZoneOffset");
+                return JavaTemplate.builder(code)
+                        .imports("java.time.ZonedDateTime", "java.time.Instant", "java.time.ZoneId", "java.time.ZoneOffset").build()
+                        .apply(getCursor(), nc.getCoordinates().replace(), parameters.toArray());
+            }
         });
+    }
+
+    /// `ZonedDateTime.parse(String)` only accepts what `ISO_ZONED_DATE_TIME` does, where Joda-Time also accepts a
+    /// date, or a date time without an offset; so only literals that it is known to accept are migrated.
+    private static boolean isIsoZonedDateTime(Expression text) {
+        if (!(text instanceof J.Literal) || !(((J.Literal) text).getValue() instanceof String)) {
+            return false;
+        }
+        try {
+            ZonedDateTime.parse((String) ((J.Literal) text).getValue());
+            return true;
+        } catch (DateTimeParseException e) {
+            return false;
+        }
+    }
+
+    static boolean isSimple(@Nullable Expression expression) {
+        return expression instanceof J.Identifier ||
+                expression instanceof J.FieldAccess && ((J.FieldAccess) expression).getTarget() instanceof J.Identifier;
+    }
+
+    /// Returns the nanoseconds for the milliseconds at `index` as code: a literal when the milliseconds are one,
+    /// otherwise a multiplication that takes the milliseconds as template parameter. A literal is removed from `args`.
+    static String nanos(List<Expression> args, int index) {
+        Expression millis = args.get(index);
+        if (millis instanceof J.Literal && ((J.Literal) millis).getValue() instanceof Integer) {
+            args.remove(index);
+            int value = (Integer) ((J.Literal) millis).getValue();
+            return value == 0 ? "0" : String.format(Locale.ROOT, "%,d", value * 1_000_000L).replace(',', '_');
+        }
+        return "#{any(int)} * 1_000_000";
     }
 }

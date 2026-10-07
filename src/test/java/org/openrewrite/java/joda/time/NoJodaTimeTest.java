@@ -160,11 +160,10 @@ class NoJodaTimeTest implements RewriteTest {
             """
               import java.time.LocalDate;
               import java.time.ZoneId;
-              import java.time.ZoneOffset;
 
               class A {
                   void foo() {
-                      LocalDate.now().atStartOfDay(ZoneOffset.of(ZoneId.systemDefault().getId()));
+                      LocalDate.now().atStartOfDay(ZoneId.systemDefault());
                   }
               }
               """

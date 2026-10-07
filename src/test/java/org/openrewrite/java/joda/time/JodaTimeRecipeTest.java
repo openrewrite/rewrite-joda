@@ -440,7 +440,7 @@ class JodaTimeRecipeTest implements RewriteTest {
 
               class A {
                   public ZonedDateTime foo(ZonedDateTime dt) {
-                      ZonedDateTime d = dt.toLocalDate().atStartOfDay(ZoneId.systemDefault());
+                      ZonedDateTime d = dt.toLocalDate().atStartOfDay(dt.getZone());
                       ZonedDateTime d2 = ZonedDateTime.now();
                       Interval interval = Interval.of(d2.toInstant(), d2.plusDays(1).toInstant());
                       return interval.getEnd().atZone(ZoneId.systemDefault());
@@ -479,7 +479,6 @@ class JodaTimeRecipeTest implements RewriteTest {
               }
               """,
             """
-              import java.time.ZoneId;
               import java.time.ZonedDateTime;
 
               class A {
@@ -489,7 +488,7 @@ class JodaTimeRecipeTest implements RewriteTest {
 
                   private static class Bar {
                       public void bar(ZonedDateTime dt) {
-                          dt.toLocalDate().atStartOfDay(ZoneId.systemDefault());
+                          dt.toLocalDate().atStartOfDay(dt.getZone());
                       }
                   }
               }

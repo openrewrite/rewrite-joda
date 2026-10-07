@@ -72,7 +72,6 @@ class JodaAbstractInstantToJavaTimeTest implements RewriteTest {
             """
               import java.time.Duration;
               import java.time.Instant;
-              import java.time.ZoneId;
               import java.time.ZonedDateTime;
               import java.time.format.DateTimeFormatter;
               import java.util.Date;
@@ -81,16 +80,16 @@ class JodaAbstractInstantToJavaTimeTest implements RewriteTest {
                   public void foo() {
                       ZonedDateTime.now().equals(ZonedDateTime.now());
                       ZonedDateTime.now().getZone();
-                      ZonedDateTime.now().isAfter(Instant.ofEpochMilli(1234567890L).atZone(ZoneId.systemDefault()));
+                      ZonedDateTime.now().toInstant().isAfter(Instant.ofEpochMilli(1234567890L));
                       Instant.now().isAfter(Instant.ofEpochMilli(1234567890L));
                       ZonedDateTime.now().isAfter(ZonedDateTime.now().minusDays(1));
                       Instant.now().isAfter(Instant.now().minus(Duration.ofDays(1)));
-                      ZonedDateTime.now().isBefore(Instant.ofEpochMilli(1234567890L).atZone(ZoneId.systemDefault()));
+                      ZonedDateTime.now().toInstant().isBefore(Instant.ofEpochMilli(1234567890L));
                       Instant.now().isBefore(Instant.ofEpochMilli(1234567890L));
                       ZonedDateTime.now().isBefore(ZonedDateTime.now().plusDays(1));
                       Instant.now().isBefore(Instant.now().plus(Duration.ofDays(1)));
                       ZonedDateTime.now().isBefore(ZonedDateTime.now());
-                      ZonedDateTime.now().isEqual(Instant.ofEpochMilli(1234567890L).atZone(ZoneId.systemDefault()));
+                      ZonedDateTime.now().toInstant().equals(Instant.ofEpochMilli(1234567890L));
                       ZonedDateTime.now().isEqual(ZonedDateTime.now().plusDays(1));
                       Date.from(ZonedDateTime.now().toInstant());
                       ZonedDateTime.now().toInstant();
@@ -137,4 +136,31 @@ class JodaAbstractInstantToJavaTimeTest implements RewriteTest {
         );
     }
 
+    @Test
+    void compareWithMillisWithoutInventingAZone() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.joda.time.DateTime;
+
+              class A {
+                  boolean after(DateTime d, long millis) {
+                      return d.isAfter(millis);
+                  }
+              }
+              """,
+            """
+              import java.time.Instant;
+              import java.time.ZonedDateTime;
+
+              class A {
+                  boolean after(ZonedDateTime d, long millis) {
+                      return d.toInstant().isAfter(Instant.ofEpochMilli(millis));
+                  }
+              }
+              """
+          )
+        );
+    }
 }

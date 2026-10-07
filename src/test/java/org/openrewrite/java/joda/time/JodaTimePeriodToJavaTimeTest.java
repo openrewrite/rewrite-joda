@@ -153,7 +153,36 @@ class JodaTimePeriodToJavaTimeTest implements RewriteTest {
     }
 
     @Test
-    void standaloneFactoryCall() {
+    void standaloneFactoryCallAsAmountToAdd() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.joda.time.DateTime;
+              import org.joda.time.Seconds;
+
+              class A {
+                  DateTime foo(DateTime dt, int n) {
+                      return dt.plus(Seconds.seconds(n));
+                  }
+              }
+              """,
+            """
+              import java.time.Duration;
+              import java.time.ZonedDateTime;
+
+              class A {
+                  ZonedDateTime foo(ZonedDateTime dt, int n) {
+                      return dt.plus(Duration.ofSeconds(n));
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void doNotChangeStandaloneFactoryCallThatStaysJodaTime() {
         // language=java
         rewriteRun(
           java(
@@ -163,15 +192,6 @@ class JodaTimePeriodToJavaTimeTest implements RewriteTest {
               class A {
                   void foo(int n) {
                       Object d = Seconds.seconds(n);
-                  }
-              }
-              """,
-            """
-              import java.time.Duration;
-
-              class A {
-                  void foo(int n) {
-                      Object d = Duration.ofSeconds(n);
                   }
               }
               """
@@ -315,6 +335,47 @@ class JodaTimePeriodToJavaTimeTest implements RewriteTest {
               class A {
                   void foo(ZonedDateTime start, ZonedDateTime end) {
                       Duration d = Duration.ofDays(ChronoUnit.DAYS.between(start, end));
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void periodsAsAmountToAdd() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.joda.time.Days;
+              import org.joda.time.Hours;
+              import org.joda.time.LocalDate;
+              import org.joda.time.DateTime;
+
+              class A {
+                  LocalDate tomorrow(LocalDate d) {
+                      return d.plus(Days.days(1));
+                  }
+
+                  DateTime later(DateTime d) {
+                      return d.minus(Hours.hours(2));
+                  }
+              }
+              """,
+            """
+              import java.time.Duration;
+              import java.time.LocalDate;
+              import java.time.Period;
+              import java.time.ZonedDateTime;
+
+              class A {
+                  LocalDate tomorrow(LocalDate d) {
+                      return d.plus(Period.ofDays(1));
+                  }
+
+                  ZonedDateTime later(ZonedDateTime d) {
+                      return d.minus(Duration.ofHours(2));
                   }
               }
               """
