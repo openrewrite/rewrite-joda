@@ -21,6 +21,7 @@ import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.ChangeMethodName;
 import org.openrewrite.java.ChangeType;
+import org.openrewrite.java.dependencies.AddDependency;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.internal.TypesInUse;
@@ -138,6 +139,12 @@ public class JodaTimeToJavaTime extends ScanningRecipe<JodaTimeToJavaTime.Accumu
     private static final Pattern XML_JODA_TIME_TYPE_REFERENCE = Pattern.compile(
             "\\b((?:key|value|class|type|key-type|value-type|javaType|returnType)\\s*=\\s*\"(" + JODA_TIME_TYPE + ")\")" +
             "|(<(?:key|value|class|type)>\\s*(" + JODA_TIME_TYPE + ")\\s*</)");
+    private static final Pattern XML_MAPPED_PROPERTY_TYPE = Pattern.compile(
+            "<(?:property|element|id|key-property|version|timestamp)\\b[^>]*\\btype\\s*=\\s*\"([^\"]+)\"");
+    private static final Pattern JADIRA_PERSISTED_TYPE = Pattern.compile("Persistent([A-Z][A-Za-z]*)");
+    private static final List<String> JODA_TIME_SIMPLE_NAMES = Arrays.asList(
+            "LocalDateTime", "LocalDate", "LocalTime", "DateTimeZone", "DateTime", "DateMidnight", "Instant",
+            "Interval", "Duration", "Period", "MonthDay", "YearMonth");
     private static final Pattern XML_COMMENT_OR_CDATA = Pattern.compile("<!--.*?-->|<!\\[CDATA\\[.*?]]>", Pattern.DOTALL);
     private static final Pattern XML_NOT_CONFIGURATION = Pattern.compile(
             "(^|/)pom\\.xml$|spotbugs|findbugs|checkstyle|pmd|suppressions|forbidden|ruleset", Pattern.CASE_INSENSITIVE);
@@ -145,8 +152,9 @@ public class JodaTimeToJavaTime extends ScanningRecipe<JodaTimeToJavaTime.Accumu
     @Option(displayName = "Joda-Time types to migrate anyway",
             description = "Fully qualified Joda-Time types to migrate even where the repository registers or looks them up " +
                           "by their type, which otherwise keeps them on Joda-Time throughout the repository. Use this after " +
-                          "reviewing the registrations named in the Joda-Time migration blockers data table, and update " +
-                          "those registrations by hand.",
+                          "reviewing the registrations named in the Joda-Time migration blockers data table. The files " +
+                          "that hold those registrations stay on Joda-Time, so update them by hand, including the files " +
+                          "that convert or bind values of these types.",
             example = "org.joda.time.DateTime",
             required = false)
     @Nullable
@@ -170,6 +178,13 @@ public class JodaTimeToJavaTime extends ScanningRecipe<JodaTimeToJavaTime.Accumu
     transient JodaTimeMigrationBlockers blockers = new JodaTimeMigrationBlockers(this);
 
     @Override
+    public List<Recipe> getRecipeList() {
+        // in the next cycle, where the migrated sources use ThreeTen-Extra
+        return singletonList(new AddDependency("org.threeten", "threeten-extra", "1.8.0", null,
+                "org.threeten.extra.Interval", null, null, null, null, null, null, null, null, null));
+    }
+
+    @Override
     public boolean causesAnotherCycle() {
         // so that dependencies can be added for the `java.time` and ThreeTen-Extra types now in use
         return true;
@@ -179,7 +194,11 @@ public class JodaTimeToJavaTime extends ScanningRecipe<JodaTimeToJavaTime.Accumu
         final Map<String, Path> typeDeclarations = new HashMap<>();
         final Map<Path, Candidate> candidates = new HashMap<>();
         final Set<Path> reported = new HashSet<>();
-        final Set<String> jodaTypeAliases = new HashSet<>();
+        /// Hibernate type aliases of Joda-Time user types, mapped to the user type.
+        final Map<String, String> jodaTypeAliases = new HashMap<>();
+
+        /// Hibernate type aliases that XML mappings use for properties, per XML file.
+        final Map<Path, Set<String>> xmlTypeAliasReferences = new HashMap<>();
 
         /// Joda-Time types named in XML configuration, per XML file.
         final Map<Path, Map<String, String>> xmlPinnedTypes = new HashMap<>();
@@ -207,12 +226,31 @@ public class JodaTimeToJavaTime extends ScanningRecipe<JodaTimeToJavaTime.Accumu
                     candidate.pinnedTypes.forEach(pinnedTypes::putIfAbsent);
                     candidate.runtimeTestedTypes.forEach(runtimeTestedTypes::putIfAbsent);
                 }
+                // a Hibernate user type for Joda-Time maps every member of that type, wherever it is referenced
+                for (Map.Entry<Path, Candidate> entry : candidates.entrySet()) {
+                    for (Map.Entry<String, String> aliased : entry.getValue().aliasedTypes.entrySet()) {
+                        if (jodaTypeAliases.containsKey(aliased.getKey())) {
+                            pinnedTypes.putIfAbsent(aliased.getValue(), "is mapped with the Hibernate type `" + aliased.getKey() + "` in `" + entry.getKey() + "`");
+                        }
+                    }
+                }
+                for (Map.Entry<Path, Set<String>> references : xmlTypeAliasReferences.entrySet()) {
+                    for (String alias : references.getValue()) {
+                        String jodaType = jodaTimeTypeOfUserType(jodaTypeAliases.get(alias));
+                        if (jodaType != null) {
+                            pinnedTypes.putIfAbsent(jodaType, "is mapped with the Hibernate type `" + alias + "` in `" + references.getKey() + "`");
+                        }
+                    }
+                }
                 pinnedTypes.keySet().removeAll(migrateDespiteTypeLookups);
                 runtimeTestedTypes.keySet().removeAll(migrateDespiteTypeLookups);
                 for (Map.Entry<Path, Candidate> entry : candidates.entrySet()) {
                     Candidate candidate = entry.getValue();
                     List<String> fileProblems = new ArrayList<>(candidate.problems);
                     for (JavaType.FullyQualified jodaType : candidate.jodaTypes.values()) {
+                        if (migrateDespiteTypeLookups.contains(jodaType.getFullyQualifiedName())) {
+                            continue;
+                        }
                         for (Map.Entry<String, String> pinned : pinnedTypes.entrySet()) {
                             if (!candidate.pinnedTypes.containsKey(pinned.getKey()) && TypeUtils.isAssignableTo(pinned.getKey(), jodaType)) {
                                 fileProblems.add("Uses `" + jodaType.getFullyQualifiedName() + "`, which stays on Joda-Time in this repository because " +
@@ -223,6 +261,9 @@ public class JodaTimeToJavaTime extends ScanningRecipe<JodaTimeToJavaTime.Accumu
                         }
                     }
                     for (JavaType.FullyQualified passed : candidate.passedAsObject.values()) {
+                        if (migrateDespiteTypeLookups.contains(passed.getFullyQualifiedName())) {
+                            continue;
+                        }
                         for (Map.Entry<String, String> tested : runtimeTestedTypes.entrySet()) {
                             if (!candidate.runtimeTestedTypes.containsKey(tested.getKey()) && TypeUtils.isAssignableTo(tested.getKey(), passed)) {
                                 fileProblems.add("Passes a `" + passed.getFullyQualifiedName() + "` as `Object`, while " + tested.getValue());
@@ -231,7 +272,7 @@ public class JodaTimeToJavaTime extends ScanningRecipe<JodaTimeToJavaTime.Accumu
                         }
                     }
                     for (String alias : candidate.typeAliases) {
-                        if (jodaTypeAliases.contains(alias)) {
+                        if (jodaTypeAliases.containsKey(alias)) {
                             fileProblems.add("Maps a field with the Hibernate type `" + alias + "`, which is defined as a Joda-Time user type");
                         }
                     }
@@ -340,6 +381,9 @@ public class JodaTimeToJavaTime extends ScanningRecipe<JodaTimeToJavaTime.Accumu
 
         /// Hibernate type names used in `@Type(type = "...")`, which may be aliases of Joda-Time user types.
         final Set<String> typeAliases = new HashSet<>();
+
+        /// Those Hibernate type names mapped to the Joda-Time type of the member they annotate.
+        final Map<String, String> aliasedTypes = new HashMap<>();
 
         /// The Joda-Time types this file uses, to find out whether it uses one that must stay on Joda-Time.
         final Map<String, JavaType.FullyQualified> jodaTypes = new HashMap<>();
@@ -613,13 +657,47 @@ public class JodaTimeToJavaTime extends ScanningRecipe<JodaTimeToJavaTime.Accumu
                     // a utility class named after Joda-Time is not an integration; one that plugs into a framework or
                     // looks values up by type is
                     boolean pluggedIn = type != null && (!type.getInterfaces().isEmpty() ||
-                            type.getSupertype() != null && !"java.lang.Object".equals(type.getSupertype().getFullyQualifiedName()));
+                            type.getSupertype() != null && !"java.lang.Object".equals(type.getSupertype().getFullyQualifiedName())) ||
+                            isRegisteredByAnnotationOrOverload(classDecl);
                     if (jodaNamed && (pluggedIn || c.pinnedTypes.size() + c.runtimeTestedTypes.size() > typeLookups)) {
                         for (String jodaType : c.jodaTypes.keySet()) {
                             c.pinnedTypes.putIfAbsent(jodaType, "is handled by the integration `" + classDecl.getSimpleName() + "` in `" + source.getSourcePath() + "`");
                         }
                     }
                     return visited;
+                }
+
+                /// A framework can also find an integration through an annotation, or choose among overloads of one method
+                /// by their Joda-Time parameter types, like a template engine choosing a value transformer does.
+                private boolean isRegisteredByAnnotationOrOverload(J.ClassDeclaration classDecl) {
+                    if (hasFrameworkAnnotation(classDecl.getLeadingAnnotations())) {
+                        return true;
+                    }
+                    Map<String, Integer> jodaOverloads = new HashMap<>();
+                    for (Statement statement : classDecl.getBody().getStatements()) {
+                        if (statement instanceof J.MethodDeclaration) {
+                            J.MethodDeclaration method = (J.MethodDeclaration) statement;
+                            if (hasFrameworkAnnotation(method.getLeadingAnnotations())) {
+                                return true;
+                            }
+                            if (method.getMethodType() != null && method.getMethodType().getParameterTypes().stream()
+                                    .anyMatch(parameter -> mentionsJodaTime(parameter, 0)) &&
+                                jodaOverloads.merge(method.getSimpleName(), 1, Integer::sum) > 1) {
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                }
+
+                private boolean hasFrameworkAnnotation(List<J.Annotation> annotations) {
+                    for (J.Annotation annotation : annotations) {
+                        JavaType.FullyQualified type = TypeUtils.asFullyQualified(annotation.getType());
+                        if (type == null || !type.getFullyQualifiedName().startsWith("java.lang.")) {
+                            return true;
+                        }
+                    }
+                    return false;
                 }
 
                 @Override
@@ -714,6 +792,10 @@ public class JodaTimeToJavaTime extends ScanningRecipe<JodaTimeToJavaTime.Accumu
                                 String text = (String) ((J.Literal) value).getValue();
                                 if (hibernateType) {
                                     c.typeAliases.add(text);
+                                    JavaType.FullyQualified aliased = TypeUtils.asFullyQualified(annotatedType());
+                                    if (aliased != null && isJodaTime(aliased)) {
+                                        c.aliasedTypes.putIfAbsent(text, aliased.getFullyQualifiedName());
+                                    }
                                 }
                                 if (text.contains("org.joda.time") || text.contains("dateandtime.joda")) {
                                     // the framework maps the annotated member with a Joda-Time specific type, which every other
@@ -788,20 +870,29 @@ public class JodaTimeToJavaTime extends ScanningRecipe<JodaTimeToJavaTime.Accumu
     /// Hibernate type aliases of Joda-Time user types, in any attribute order, and Joda-Time types that the
     /// configuration names, which are looked up by name at runtime.
     private static void scanXml(SourceFile xml, Accumulator acc) {
-        String text = xml.printAll();
+        String text = XML_COMMENT_OR_CDATA.matcher(xml.printAll()).replaceAll("");
         Matcher typedef = XML_TYPEDEF.matcher(text);
         while (typedef.find()) {
             Matcher name = XML_TYPEDEF_NAME.matcher(typedef.group(1));
             Matcher typeClass = XML_TYPEDEF_CLASS.matcher(typedef.group(1));
             if (name.find() && typeClass.find() && typeClass.group(1).toLowerCase(Locale.ROOT).contains("joda")) {
-                acc.jodaTypeAliases.add(name.group(1));
+                acc.jodaTypeAliases.put(name.group(1), typeClass.group(1));
                 acc.blocked = null;
             }
+        }
+        Set<String> aliasReferences = new HashSet<>();
+        Matcher property = XML_MAPPED_PROPERTY_TYPE.matcher(text);
+        while (property.find()) {
+            aliasReferences.add(property.group(1));
+        }
+        if (!aliasReferences.isEmpty() || acc.xmlTypeAliasReferences.containsKey(xml.getSourcePath())) {
+            acc.xmlTypeAliasReferences.put(xml.getSourcePath(), aliasReferences);
+            acc.blocked = null;
         }
         Map<String, String> named = new HashMap<>();
         // build and static analysis descriptors name Joda-Time types without anything looking them up at runtime
         if (!XML_NOT_CONFIGURATION.matcher(xml.getSourcePath().toString().replace('\\', '/')).find()) {
-            Matcher reference = XML_JODA_TIME_TYPE_REFERENCE.matcher(XML_COMMENT_OR_CDATA.matcher(text).replaceAll(""));
+            Matcher reference = XML_JODA_TIME_TYPE_REFERENCE.matcher(text);
             while (reference.find()) {
                 String jodaType = reference.group(2) != null ? reference.group(2) : reference.group(4);
                 named.putIfAbsent(jodaType, "is named in `" + xml.getSourcePath() + "` as `" + reference.group().trim() + "`");
@@ -811,6 +902,19 @@ public class JodaTimeToJavaTime extends ScanningRecipe<JodaTimeToJavaTime.Accumu
             acc.xmlPinnedTypes.put(xml.getSourcePath(), named);
             acc.blocked = null;
         }
+    }
+
+    /// The Joda-Time type that a Jadira user type such as `PersistentDateTime` or `PersistentInstantAsMillisLong` persists.
+    private static @Nullable String jodaTimeTypeOfUserType(@Nullable String userType) {
+        Matcher persisted = JADIRA_PERSISTED_TYPE.matcher(userType == null ? "" : userType);
+        if (persisted.find()) {
+            for (String simpleName : JODA_TIME_SIMPLE_NAMES) {
+                if (persisted.group(1).startsWith(simpleName)) {
+                    return "org.joda.time." + simpleName;
+                }
+            }
+        }
+        return null;
     }
 
     /// An inherited implementation only satisfies a supertype method while both agree on Joda-Time or `java.time`. So a
@@ -867,26 +971,27 @@ public class JodaTimeToJavaTime extends ScanningRecipe<JodaTimeToJavaTime.Accumu
         return false;
     }
 
-    private static void collectTypeDefs(JavaSourceFile source, Set<String> jodaTypeAliases) {
-        new JavaIsoVisitor<Set<String>>() {
+    private static void collectTypeDefs(JavaSourceFile source, Map<String, String> jodaTypeAliases) {
+        new JavaIsoVisitor<Map<String, String>>() {
             @Override
-            public J.Annotation visitAnnotation(J.Annotation annotation, Set<String> aliases) {
+            public J.Annotation visitAnnotation(J.Annotation annotation, Map<String, String> aliases) {
                 if (TypeUtils.isOfClassType(annotation.getType(), "org.hibernate.annotations.TypeDef") && annotation.getArguments() != null) {
                     String name = null;
-                    boolean jodaTime = false;
+                    String userType = null;
                     for (Expression argument : annotation.getArguments()) {
                         if (argument instanceof J.Assignment) {
                             J.Assignment assignment = (J.Assignment) argument;
                             String key = assignment.getVariable() instanceof J.Identifier ? ((J.Identifier) assignment.getVariable()).getSimpleName() : "";
                             if ("name".equals(key) && assignment.getAssignment() instanceof J.Literal) {
                                 name = String.valueOf(((J.Literal) assignment.getAssignment()).getValue());
-                            } else if ("typeClass".equals(key) || "defaultForType".equals(key)) {
-                                jodaTime |= String.valueOf(assignment.getAssignment().getType()).toLowerCase(Locale.ROOT).contains("joda");
+                            } else if ("typeClass".equals(key) &&
+                                       String.valueOf(assignment.getAssignment().getType()).toLowerCase(Locale.ROOT).contains("joda")) {
+                                userType = String.valueOf(assignment.getAssignment().getType());
                             }
                         }
                     }
-                    if (name != null && jodaTime) {
-                        aliases.add(name);
+                    if (name != null && userType != null) {
+                        aliases.put(name, userType);
                     }
                 }
                 return super.visitAnnotation(annotation, aliases);

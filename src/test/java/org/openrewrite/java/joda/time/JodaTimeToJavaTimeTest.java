@@ -1180,6 +1180,183 @@ class JodaTimeToJavaTimeTest implements RewriteTest {
     }
 
     @Test
+    void leaveTypesOfAnnotatedJodaNamedIntegrationOnJodaTime() {
+        rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion()
+            .classpathFromResources(new InMemoryExecutionContext(), "joda-time-2", "threeten-extra-1")
+            .dependsOn(
+              """
+                package org.rythmengine.extension;
+
+                public @interface Transformer {
+                }
+                """
+            )),
+          //language=java
+          java(
+            """
+              import org.joda.time.DateTimeZone;
+              import org.rythmengine.extension.Transformer;
+
+              public class JodaTransformers {
+                  @Transformer
+                  public static String shortStyle(DateTimeZone zone) {
+                      return zone.getID();
+                  }
+              }
+              """
+          ),
+          //language=java
+          java(
+            """
+              import org.joda.time.DateTimeZone;
+
+              class Settings {
+                  private DateTimeZone zone = DateTimeZone.UTC;
+
+                  DateTimeZone zone() {
+                      return zone;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void migrateTypesLookedUpThroughASupertypeWhenRequested() {
+        rewriteRun(
+          spec -> spec.recipe(new JodaTimeToJavaTime(singletonList("org.joda.time.DateTime"))),
+          //language=java
+          java(
+            """
+              import org.joda.time.ReadableInstant;
+
+              import java.util.List;
+
+              class SchemaModule {
+                  boolean handles(Class<?> candidate, List<Class<?>> types) {
+                      types.add(ReadableInstant.class);
+                      return types.stream().anyMatch(type -> type.isAssignableFrom(candidate));
+                  }
+              }
+              """
+          ),
+          //language=java
+          java(
+            """
+              import org.joda.time.DateTime;
+
+              class Event {
+                  DateTime created() {
+                      return DateTime.now();
+                  }
+              }
+              """,
+            """
+              import java.time.ZonedDateTime;
+
+              class Event {
+                  ZonedDateTime created() {
+                      return ZonedDateTime.now();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void leaveTypesMappedWithJodaTimeUserTypesInXmlOnJodaTime() {
+        rewriteRun(
+          //language=xml
+          xml(
+            """
+              <hibernate-mapping>
+                  <typedef name="dateTime" class="org.jadira.usertype.dateandtime.joda.PersistentDateTime"/>
+                  <class name="Audit">
+                      <property name="created" type="dateTime"/>
+                  </class>
+              </hibernate-mapping>
+              """,
+            spec -> spec.path("global.hbm.xml")
+          ),
+          //language=java
+          java(
+            """
+              import org.joda.time.DateTime;
+
+              public class Audit {
+                  private DateTime created;
+
+                  public DateTime getCreated() {
+                      return created;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void commentedOutTypedefDoesNotDefineAnAlias() {
+        rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion()
+            .classpathFromResources(new InMemoryExecutionContext(), "joda-time-2", "threeten-extra-1")
+            .dependsOn(
+              """
+                package org.hibernate.annotations;
+
+                public @interface Type {
+                    String type();
+                }
+                """
+            )),
+          //language=xml
+          xml(
+            """
+              <hibernate-mapping>
+                  <!-- migrated away from Joda-Time:
+                  <typedef name="dateTime" class="org.jadira.usertype.dateandtime.joda.PersistentDateTime"/>
+                  -->
+              </hibernate-mapping>
+              """,
+            spec -> spec.path("global.hbm.xml")
+          ),
+          //language=java
+          java(
+            """
+              import org.hibernate.annotations.Type;
+              import org.joda.time.DateTime;
+
+              public class Audit {
+                  @Type(type = "dateTime")
+                  private DateTime created;
+
+                  public DateTime getCreated() {
+                      return created;
+                  }
+              }
+              """,
+            """
+              import org.hibernate.annotations.Type;
+
+              import java.time.ZonedDateTime;
+
+              public class Audit {
+                  @Type(type = "dateTime")
+                  private ZonedDateTime created;
+
+                  public ZonedDateTime getCreated() {
+                      return created;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void doNotCreateADuplicateOverload() {
         rewriteRun(
           //language=java
