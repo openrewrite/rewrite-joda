@@ -61,7 +61,6 @@ public class JodaDateTimeToJavaTime extends Recipe {
     private static final MethodMatcher DT_NOW = new MethodMatcher("org.joda.time.DateTime now()");
     private static final MethodMatcher DT_NOW_ZONE = new MethodMatcher("org.joda.time.DateTime now(org.joda.time.DateTimeZone)");
     private static final MethodMatcher DT_PARSE = new MethodMatcher("org.joda.time.DateTime parse(String)");
-    private static final MethodMatcher DT_PARSE_FMT = new MethodMatcher("org.joda.time.DateTime parse(String, org.joda.time.format.DateTimeFormatter)");
 
     // Instance method matchers (structural transformations only)
     private static final MethodMatcher TO_DATE_TIME = new MethodMatcher("org.joda.time.DateTime toDateTime()");
@@ -210,13 +209,6 @@ public class JodaDateTimeToJavaTime extends Recipe {
                     return JavaTemplate.builder("ZonedDateTime.parse(#{any(String)})")
                             .imports("java.time.ZonedDateTime").build()
                             .apply(getCursor(), m.getCoordinates().replace(), m.getArguments().get(0));
-                }
-                if (DT_PARSE_FMT.matches(method)) {
-                    maybeAddImport("java.time.ZonedDateTime");
-                    return JavaTemplate.builder("ZonedDateTime.parse(#{any(String)}, #{any(java.time.format.DateTimeFormatter)})")
-                            .imports("java.time.ZonedDateTime").build()
-                            .apply(getCursor(), m.getCoordinates().replace(),
-                            m.getArguments().get(0), m.getArguments().get(1));
                 }
 
                 // Identity removal

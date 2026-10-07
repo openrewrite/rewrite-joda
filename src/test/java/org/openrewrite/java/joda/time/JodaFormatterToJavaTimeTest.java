@@ -24,6 +24,7 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.java.Assertions.java;
 
 @Execution(ExecutionMode.SAME_THREAD)
@@ -118,8 +119,8 @@ class JodaFormatterToJavaTimeTest implements RewriteTest {
 
               class A {
                   public void foo() {
-                      ZonedDateTime.parse("2024-10-25T15:45:00", DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
-                      ZonedDateTime.parse("2024-10-25T15:45:00", DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")).toInstant().toEpochMilli();
+                      ZonedDateTime.parse("2024-10-25T15:45:00", DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss").withZone(ZoneId.systemDefault()));
+                      ZonedDateTime.parse("2024-10-25T15:45:00", DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss").withZone(ZoneId.systemDefault())).toInstant().toEpochMilli();
                       ZonedDateTime.ofInstant(Instant.ofEpochMilli(1234567890L), ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
                       ZonedDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
                       DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss").withZone(ZoneOffset.UTC);
@@ -149,6 +150,174 @@ class JodaFormatterToJavaTimeTest implements RewriteTest {
               class A {
                   public void foo() {
                       DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void translatePatterns() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.joda.time.DateTime;
+              import org.joda.time.format.DateTimeFormat;
+              import org.joda.time.format.DateTimeFormatter;
+
+              class A {
+                  DateTimeFormatter f() {
+                      return DateTimeFormat.forPattern("dd/MM/YYYY HH:mm:ss ZZ [ZZZ]");
+                  }
+
+                  String print(DateTime dt) {
+                      return dt.toString("YYYY-MM-dd");
+                  }
+              }
+              """,
+            """
+              import java.time.ZonedDateTime;
+              import java.time.format.DateTimeFormatter;
+
+              class A {
+                  DateTimeFormatter f() {
+                      return DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss xxx '['VV']'");
+                  }
+
+                  String print(ZonedDateTime dt) {
+                      return dt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void translatePatternLetters() {
+        assertThat(JodaFormatterToJavaTime.translatePattern("dd/MM/YYYY HH:mm:ss ZZ [ZZZ]")).isEqualTo("dd/MM/yyyy HH:mm:ss xxx '['VV']'");
+        assertThat(JodaFormatterToJavaTime.translatePattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")).isEqualTo("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+        assertThat(JodaFormatterToJavaTime.translatePattern("EEEEE, MMMMM d")).isEqualTo("EEEE, MMMM d");
+        assertThat(JodaFormatterToJavaTime.translatePattern("HH:mm:sss")).isNull();
+        assertThat(JodaFormatterToJavaTime.translatePattern("xxxx-'W'ww-e")).isNull();
+    }
+
+    @Test
+    void isoFormats() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.joda.time.DateTime;
+              import org.joda.time.format.ISODateTimeFormat;
+
+              class A {
+                  String print(DateTime dt) {
+                      return ISODateTimeFormat.dateTime().print(dt);
+                  }
+              }
+              """,
+            """
+              import java.time.ZonedDateTime;
+              import java.time.format.DateTimeFormatter;
+
+              class A {
+                  String print(ZonedDateTime dt) {
+                      return dt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"));
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void parseWithFormatters() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.joda.time.DateTime;
+              import org.joda.time.LocalDate;
+              import org.joda.time.format.DateTimeFormat;
+              import org.joda.time.format.DateTimeFormatter;
+
+              class A {
+                  private static final DateTimeFormatter FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm");
+                  private static final DateTimeFormatter UTC_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm").withZoneUTC();
+
+                  LocalDate localDate(String s) {
+                      return FORMAT.parseLocalDate(s);
+                  }
+
+                  DateTime dateTime(String s) {
+                      return FORMAT.parseDateTime(s);
+                  }
+
+                  DateTime utc(String s) {
+                      return UTC_FORMAT.parseDateTime(s);
+                  }
+              }
+              """,
+            """
+              import java.time.LocalDate;
+              import java.time.ZoneId;
+              import java.time.ZoneOffset;
+              import java.time.ZonedDateTime;
+              import java.time.format.DateTimeFormatter;
+
+              class A {
+                  private static final DateTimeFormatter FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+                  private static final DateTimeFormatter UTC_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneOffset.UTC);
+
+                  LocalDate localDate(String s) {
+                      return LocalDate.parse(s, FORMAT);
+                  }
+
+                  ZonedDateTime dateTime(String s) {
+                      return ZonedDateTime.parse(s, FORMAT.withZone(ZoneId.systemDefault()));
+                  }
+
+                  ZonedDateTime utc(String s) {
+                      return ZonedDateTime.parse(s, UTC_FORMAT);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void parseDateOnlyPatternAtStartOfDay() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.joda.time.DateTime;
+              import org.joda.time.format.DateTimeFormat;
+              import org.joda.time.format.DateTimeFormatter;
+
+              class A {
+                  static final DateTimeFormatter FMT = DateTimeFormat.forPattern("yyyy-MM-dd");
+
+                  DateTime parse(String s) {
+                      return FMT.parseDateTime(s);
+                  }
+              }
+              """,
+            """
+              import java.time.LocalDate;
+              import java.time.ZoneId;
+              import java.time.ZonedDateTime;
+              import java.time.format.DateTimeFormatter;
+
+              class A {
+                  static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+                  ZonedDateTime parse(String s) {
+                      return LocalDate.parse(s, FMT).atStartOfDay(ZoneId.systemDefault());
                   }
               }
               """

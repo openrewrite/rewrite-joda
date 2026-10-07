@@ -103,14 +103,14 @@ class JodaDateTimeToJavaTimeTest implements RewriteTest {
                       DateTime.now();
                       DateTime.now(DateTimeZone.forTimeZone(TimeZone.getTimeZone("America/New_York")));
                       DateTime.parse("2024-09-30T23:03:00.000Z");
-                      DateTime.parse("2024-09-30T23:03:00.000Z", DateTimeFormat.shortDate());
+                      DateTime.parse("2024-09-30 23:03", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm"));
                   }
               }
               """,
             """
+              import java.time.ZoneId;
               import java.time.ZonedDateTime;
               import java.time.format.DateTimeFormatter;
-              import java.time.format.FormatStyle;
               import java.util.TimeZone;
 
               class A {
@@ -118,7 +118,7 @@ class JodaDateTimeToJavaTimeTest implements RewriteTest {
                       ZonedDateTime.now();
                       ZonedDateTime.now(TimeZone.getTimeZone("America/New_York").toZoneId());
                       ZonedDateTime.parse("2024-09-30T23:03:00.000Z");
-                      ZonedDateTime.parse("2024-09-30T23:03:00.000Z", DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT));
+                      ZonedDateTime.parse("2024-09-30 23:03", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneId.systemDefault()));
                   }
               }
               """

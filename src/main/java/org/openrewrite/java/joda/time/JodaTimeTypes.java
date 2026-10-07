@@ -26,6 +26,26 @@ final class JodaTimeTypes {
     private JodaTimeTypes() {
     }
 
+    /// The `java.time` type that a Joda-Time date, time or instant becomes, or `null` for any other type.
+    static @Nullable String javaTimeType(@Nullable JavaType type) {
+        if (isDateTime(type)) {
+            return "java.time.ZonedDateTime";
+        }
+        if (isInstant(type)) {
+            return "java.time.Instant";
+        }
+        if (isLocalDate(type)) {
+            return "java.time.LocalDate";
+        }
+        if (isLocalTime(type)) {
+            return "java.time.LocalTime";
+        }
+        if (TypeUtils.isOfClassType(type, "org.joda.time.LocalDateTime") || TypeUtils.isOfClassType(type, "java.time.LocalDateTime")) {
+            return "java.time.LocalDateTime";
+        }
+        return null;
+    }
+
     static boolean isDateTime(@Nullable JavaType type) {
         return TypeUtils.isOfClassType(type, "org.joda.time.DateTime") ||
                 TypeUtils.isOfClassType(type, "org.joda.time.DateMidnight") ||
