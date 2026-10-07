@@ -40,12 +40,11 @@ public class JodaPropertyToJavaTime extends Recipe {
     String description = "Migrates the common uses of Joda-Time properties, such as `dayOfMonth().withMaximumValue()`, " +
             "`hourOfDay().roundFloorCopy()` and `monthOfYear().getAsText(locale)`, to their `java.time` equivalents.";
 
-    private static final MethodMatcher PROPERTY = new MethodMatcher("org.joda.time.* *()");
-    private static final MethodMatcher PROPERTY_METHOD = new MethodMatcher("org.joda.time..* *(..)");
+    private static final MethodMatcher PROPERTY_METHOD = new MethodMatcher("org.joda.time.field.AbstractReadableInstantFieldProperty *(..)", true);
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesMethod<>(PROPERTY), new JavaVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesMethod<>(PROPERTY_METHOD), new JavaVisitor<ExecutionContext>() {
             @Override
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation m = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
@@ -54,7 +53,7 @@ public class JodaPropertyToJavaTime extends Recipe {
                 }
                 J.MethodInvocation property = (J.MethodInvocation) m.getSelect();
                 String targetType = property.getSelect() == null ? null : JodaTimeTypes.javaTimeType(property.getSelect().getType());
-                if (!PROPERTY.matches(property) || targetType == null) {
+                if (targetType == null) {
                     return m;
                 }
                 boolean hasDate = !"java.time.LocalTime".equals(targetType);
