@@ -25,7 +25,9 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.TypeUtils;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
@@ -36,6 +38,13 @@ public class JodaDurationToJavaTime extends Recipe {
 
     private static final MethodMatcher NEW_DURATION = new MethodMatcher("org.joda.time.Duration <constructor>(long)");
     private static final MethodMatcher NEW_DURATION_BETWEEN = new MethodMatcher("org.joda.time.Duration <constructor>(long, long)");
+    private static final MethodMatcher NEW_DURATION_OBJECT = new MethodMatcher("org.joda.time.Duration <constructor>(Object)");
+    private static final MethodMatcher NEW_DURATION_INSTANTS = new MethodMatcher("org.joda.time.Duration <constructor>(org.joda.time.ReadableInstant, org.joda.time.ReadableInstant)");
+    private static final MethodMatcher IS_LONGER_THAN = new MethodMatcher("org.joda.time.base.AbstractDuration isLongerThan(org.joda.time.ReadableDuration)", true);
+    private static final MethodMatcher IS_SHORTER_THAN = new MethodMatcher("org.joda.time.base.AbstractDuration isShorterThan(org.joda.time.ReadableDuration)", true);
+    private static final MethodMatcher IS_EQUAL = new MethodMatcher("org.joda.time.base.AbstractDuration isEqual(org.joda.time.ReadableDuration)", true);
+    private static final MethodMatcher TO_STANDARD = new MethodMatcher("org.joda.time.Duration toStandard*()");
+    private static final MethodMatcher GET_STANDARD_VALUE = new MethodMatcher("org.joda.time.base.BaseSingleFieldPeriod getValue()", true);
     private static final MethodMatcher TO_DURATION = new MethodMatcher("org.joda.time.Duration toDuration()");
     private static final MethodMatcher WITH_MILLIS = new MethodMatcher("org.joda.time.Duration withMillis(long)");
     private static final MethodMatcher WITH_DURATION_ADDED_LONG = new MethodMatcher("org.joda.time.Duration withDurationAdded(long, int)");
@@ -55,6 +64,24 @@ public class JodaDurationToJavaTime extends Recipe {
                             .imports("java.time.Duration").build()
                             .apply(getCursor(), nc.getCoordinates().replace(), nc.getArguments().get(0));
                 }
+                if (NEW_DURATION_OBJECT.matches(newClass) && TypeUtils.isOfClassType(nc.getArguments().get(0).getType(), "java.lang.Long")) {
+                    maybeAddImport("java.time.Duration");
+                    return JavaTemplate.builder("Duration.ofMillis(#{any(long)})")
+                            .imports("java.time.Duration").build()
+                            .apply(getCursor(), nc.getCoordinates().replace(), nc.getArguments().get(0));
+                }
+                if (NEW_DURATION_INSTANTS.matches(newClass)) {
+                    Expression start = nc.getArguments().get(0);
+                    Expression end = nc.getArguments().get(1);
+                    String type = JodaTimeTypes.isInstant(start.getType()) && JodaTimeTypes.isInstant(end.getType()) ? "java.time.Instant" :
+                            JodaTimeTypes.isDateTime(start.getType()) && JodaTimeTypes.isDateTime(end.getType()) ? "java.time.ZonedDateTime" : null;
+                    if (type != null) {
+                        maybeAddImport("java.time.Duration");
+                        return JavaTemplate.builder("Duration.between(#{any(" + type + ")}, #{any(" + type + ")})")
+                                .imports("java.time.Duration").build()
+                                .apply(getCursor(), nc.getCoordinates().replace(), start, end);
+                    }
+                }
                 if (NEW_DURATION_BETWEEN.matches(newClass)) {
                     maybeAddImport("java.time.Duration");
                     maybeAddImport("java.time.Instant");
@@ -69,6 +96,27 @@ public class JodaDurationToJavaTime extends Recipe {
             @Override
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation m = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
+                // d.toStandardDays().getDays() -> (int) d.toDays()
+                if (m.getSelect() instanceof J.MethodInvocation && TO_STANDARD.matches((J.MethodInvocation) m.getSelect()) &&
+                        m.getSimpleName().startsWith("get") && m.getArguments().stream().allMatch(J.Empty.class::isInstance)) {
+                    J.MethodInvocation toStandard = (J.MethodInvocation) m.getSelect();
+                    String unit = toStandard.getSimpleName().substring("toStandard".length());
+                    String getter = "Days".equals(unit) ? "toDays" : "Hours".equals(unit) ? "toHours" :
+                            "Minutes".equals(unit) ? "toMinutes" : "Seconds".equals(unit) ? "getSeconds" : null;
+                    if (getter != null && (m.getSimpleName().equals("get" + unit) || GET_STANDARD_VALUE.matches(m))) {
+                        return JavaTemplate.apply("(int) #{any(java.time.Duration)}." + getter + "()",
+                                getCursor(), m.getCoordinates().replace(), toStandard.getSelect());
+                    }
+                }
+                if (IS_LONGER_THAN.matches(method)) {
+                    return JavaTemplate.apply("#{any(java.time.Duration)}.compareTo(#{any(java.time.Duration)}) > 0", getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
+                }
+                if (IS_SHORTER_THAN.matches(method)) {
+                    return JavaTemplate.apply("#{any(java.time.Duration)}.compareTo(#{any(java.time.Duration)}) < 0", getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
+                }
+                if (IS_EQUAL.matches(method)) {
+                    return JavaTemplate.apply("#{any(java.time.Duration)}.equals(#{any(java.time.Duration)})", getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
+                }
                 if (TO_DURATION.matches(method)) {
                     return JavaTemplate.apply("#{any(java.time.Duration)}", getCursor(), m.getCoordinates().replace(), m.getSelect());
                 }

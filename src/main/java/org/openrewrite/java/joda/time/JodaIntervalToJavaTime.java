@@ -17,6 +17,7 @@ package org.openrewrite.java.joda.time;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Preconditions;
@@ -27,7 +28,9 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.TypeUtils;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
@@ -42,13 +45,13 @@ public class JodaIntervalToJavaTime extends Recipe {
     private static final MethodMatcher NEW_INTERVAL_RI_RI = new MethodMatcher("org.joda.time.Interval <constructor>(org.joda.time.ReadableInstant, org.joda.time.ReadableInstant)");
     private static final MethodMatcher NEW_INTERVAL_RI_RD = new MethodMatcher("org.joda.time.Interval <constructor>(org.joda.time.ReadableInstant, org.joda.time.ReadableDuration)");
     // AbstractInterval methods
-    private static final MethodMatcher GET_START = new MethodMatcher("org.joda.time.base.AbstractInterval getStart()");
-    private static final MethodMatcher GET_END = new MethodMatcher("org.joda.time.base.AbstractInterval getEnd()");
-    private static final MethodMatcher TO_DURATION_MILLIS = new MethodMatcher("org.joda.time.base.AbstractInterval toDurationMillis()");
+    private static final MethodMatcher GET_START = new MethodMatcher("org.joda.time.ReadableInterval getStart()", true);
+    private static final MethodMatcher GET_END = new MethodMatcher("org.joda.time.ReadableInterval getEnd()", true);
+    private static final MethodMatcher TO_DURATION_MILLIS = new MethodMatcher("org.joda.time.ReadableInterval toDurationMillis()", true);
     private static final MethodMatcher CONTAINS = new MethodMatcher("org.joda.time.base.AbstractInterval contains(long)");
     // BaseInterval methods
-    private static final MethodMatcher GET_START_MILLIS = new MethodMatcher("org.joda.time.base.BaseInterval getStartMillis()");
-    private static final MethodMatcher GET_END_MILLIS = new MethodMatcher("org.joda.time.base.BaseInterval getEndMillis()");
+    private static final MethodMatcher GET_START_MILLIS = new MethodMatcher("org.joda.time.ReadableInterval getStartMillis()", true);
+    private static final MethodMatcher GET_END_MILLIS = new MethodMatcher("org.joda.time.ReadableInterval getEndMillis()", true);
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -66,16 +69,25 @@ public class JodaIntervalToJavaTime extends Recipe {
                                     nc.getArguments().get(0), nc.getArguments().get(1));
                 }
                 if (NEW_INTERVAL_RI_RI.matches(newClass)) {
+                    String start = instant(nc.getArguments().get(0));
+                    String end = instant(nc.getArguments().get(1));
+                    if (start == null || end == null) {
+                        return nc;
+                    }
                     maybeAddImport("org.threeten.extra.Interval");
-                    return JavaTemplate.builder("Interval.of(#{any(java.time.ZonedDateTime)}.toInstant(), #{any(java.time.ZonedDateTime)}.toInstant())")
+                    return JavaTemplate.builder("Interval.of(" + start + ", " + end + ")")
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "threeten-extra-1"))
                             .imports("org.threeten.extra.Interval").build()
                             .apply(getCursor(), nc.getCoordinates().replace(),
                                     nc.getArguments().get(0), nc.getArguments().get(1));
                 }
                 if (NEW_INTERVAL_RI_RD.matches(newClass)) {
+                    String start = instant(nc.getArguments().get(0));
+                    if (start == null) {
+                        return nc;
+                    }
                     maybeAddImport("org.threeten.extra.Interval");
-                    return JavaTemplate.builder("Interval.of(#{any(java.time.ZonedDateTime)}.toInstant(), #{any(java.time.Duration)})")
+                    return JavaTemplate.builder("Interval.of(" + start + ", #{any(java.time.Duration)})")
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "threeten-extra-1"))
                             .imports("org.threeten.extra.Interval").build()
                             .apply(getCursor(), nc.getCoordinates().replace(),
@@ -127,5 +139,15 @@ public class JodaIntervalToJavaTime extends Recipe {
                 return m;
             }
         });
+    }
+
+    private static @Nullable String instant(Expression expression) {
+        if (JodaTimeTypes.isInstant(expression.getType())) {
+            return "#{any(java.time.Instant)}";
+        }
+        if (JodaTimeTypes.isDateTime(expression.getType())) {
+            return "#{any(java.time.ZonedDateTime)}.toInstant()";
+        }
+        return null;
     }
 }

@@ -53,11 +53,10 @@ class JodaDateMidnightToJavaTimeTest implements RewriteTest {
             """
               import java.time.LocalDate;
               import java.time.ZoneId;
-              import java.time.ZoneOffset;
 
               class A {
                   public void foo() {
-                      LocalDate.now().atStartOfDay(ZoneOffset.of(ZoneId.systemDefault().getId()));
+                      LocalDate.now().atStartOfDay(ZoneId.systemDefault());
                   }
               }
               """
@@ -82,11 +81,39 @@ class JodaDateMidnightToJavaTimeTest implements RewriteTest {
             """
               import java.time.LocalDate;
               import java.time.ZoneId;
-              import java.time.ZoneOffset;
 
               class A {
                   public void foo() {
-                      LocalDate.now().atStartOfDay(ZoneOffset.of(ZoneId.systemDefault().getId()));
+                      LocalDate.now().atStartOfDay(ZoneId.systemDefault());
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void dateMidnightFromFields() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.joda.time.DateMidnight;
+
+              class A {
+                  DateMidnight spring() {
+                      return new DateMidnight(2012, 3, 20);
+                  }
+              }
+              """,
+            """
+              import java.time.LocalDate;
+              import java.time.ZoneId;
+              import java.time.ZonedDateTime;
+
+              class A {
+                  ZonedDateTime spring() {
+                      return LocalDate.of(2012, 3, 20).atStartOfDay(ZoneId.systemDefault());
                   }
               }
               """

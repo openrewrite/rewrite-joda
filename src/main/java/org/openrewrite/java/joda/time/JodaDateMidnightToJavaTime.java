@@ -25,6 +25,7 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 
 @Value
@@ -32,10 +33,14 @@ import org.openrewrite.java.tree.J;
 public class JodaDateMidnightToJavaTime extends Recipe {
     String displayName = "Migrate Joda-Time `DateMidnight` to Java time";
 
-    String description = "Migrates `org.joda.time.DateMidnight` constructor and `now()` calls to `java.time.LocalDate.now().atStartOfDay(...)`.";
+    String description = "Migrates `org.joda.time.DateMidnight` constructors and `now()` calls to `java.time.LocalDate.atStartOfDay(...)`.";
 
     private static final MethodMatcher CONSTRUCTOR = new MethodMatcher("org.joda.time.DateMidnight <constructor>()");
+    private static final MethodMatcher CONSTRUCTOR_ZONE = new MethodMatcher("org.joda.time.DateMidnight <constructor>(org.joda.time.DateTimeZone)");
+    private static final MethodMatcher CONSTRUCTOR_YMD = new MethodMatcher("org.joda.time.DateMidnight <constructor>(int, int, int)");
+    private static final MethodMatcher CONSTRUCTOR_YMD_ZONE = new MethodMatcher("org.joda.time.DateMidnight <constructor>(int, int, int, org.joda.time.DateTimeZone)");
     private static final MethodMatcher NOW = new MethodMatcher("org.joda.time.DateMidnight now()");
+    private static final MethodMatcher NOW_ZONE = new MethodMatcher("org.joda.time.DateMidnight now(org.joda.time.DateTimeZone)");
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -44,14 +49,19 @@ public class JodaDateMidnightToJavaTime extends Recipe {
             public J visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
                 J.NewClass nc = (J.NewClass) super.visitNewClass(newClass, ctx);
                 if (CONSTRUCTOR.matches(newClass)) {
-                    maybeAddImport("java.time.LocalDate");
-                    maybeAddImport("java.time.ZoneOffset");
-                    maybeAddImport("java.time.ZoneId");
-                    return JavaTemplate
-                            .builder("LocalDate.now().atStartOfDay(ZoneOffset.of(ZoneId.systemDefault().getId()))")
-                            .imports("java.time.LocalDate", "java.time.ZoneOffset", "java.time.ZoneId")
-                            .build()
-                            .apply(getCursor(), nc.getCoordinates().replace());
+                    return replace(nc, "LocalDate.now().atStartOfDay(ZoneId.systemDefault())");
+                }
+                if (CONSTRUCTOR_ZONE.matches(newClass) && JodaDateTimeToJavaTime.isSimple(nc.getArguments().get(0))) {
+                    return replace(nc, "LocalDate.now(#{any(java.time.ZoneId)}).atStartOfDay(#{any(java.time.ZoneId)})",
+                            nc.getArguments().get(0), nc.getArguments().get(0));
+                }
+                if (CONSTRUCTOR_YMD.matches(newClass)) {
+                    return replace(nc, "LocalDate.of(#{any(int)}, #{any(int)}, #{any(int)}).atStartOfDay(ZoneId.systemDefault())",
+                            nc.getArguments().get(0), nc.getArguments().get(1), nc.getArguments().get(2));
+                }
+                if (CONSTRUCTOR_YMD_ZONE.matches(newClass)) {
+                    return replace(nc, "LocalDate.of(#{any(int)}, #{any(int)}, #{any(int)}).atStartOfDay(#{any(java.time.ZoneId)})",
+                            nc.getArguments().toArray());
                 }
                 return nc;
             }
@@ -60,16 +70,21 @@ public class JodaDateMidnightToJavaTime extends Recipe {
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation m = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                 if (NOW.matches(method)) {
-                    maybeAddImport("java.time.LocalDate");
-                    maybeAddImport("java.time.ZoneOffset");
-                    maybeAddImport("java.time.ZoneId");
-                    return JavaTemplate
-                            .builder("LocalDate.now().atStartOfDay(ZoneOffset.of(ZoneId.systemDefault().getId()))")
-                            .imports("java.time.LocalDate", "java.time.ZoneOffset", "java.time.ZoneId")
-                            .build()
-                            .apply(getCursor(), m.getCoordinates().replace());
+                    return replace(m, "LocalDate.now().atStartOfDay(ZoneId.systemDefault())");
+                }
+                if (NOW_ZONE.matches(method) && JodaDateTimeToJavaTime.isSimple(m.getArguments().get(0))) {
+                    return replace(m, "LocalDate.now(#{any(java.time.ZoneId)}).atStartOfDay(#{any(java.time.ZoneId)})",
+                            m.getArguments().get(0), m.getArguments().get(0));
                 }
                 return m;
+            }
+
+            private J replace(Expression expression, String code, Object... parameters) {
+                maybeAddImport("java.time.LocalDate");
+                maybeAddImport("java.time.ZoneId");
+                return JavaTemplate.builder(code)
+                        .imports("java.time.LocalDate", "java.time.ZoneId").build()
+                        .apply(getCursor(), expression.getCoordinates().replace(), parameters);
             }
         });
     }

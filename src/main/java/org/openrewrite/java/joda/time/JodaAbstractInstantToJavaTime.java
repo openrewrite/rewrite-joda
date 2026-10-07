@@ -17,7 +17,6 @@ package org.openrewrite.java.joda.time;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -35,88 +34,82 @@ import org.openrewrite.java.tree.TypeUtils;
 public class JodaAbstractInstantToJavaTime extends Recipe {
     String displayName = "Migrate Joda-Time `AbstractInstant` to Java time";
 
-    String description = "Migrates Joda-Time `AbstractInstant` method calls to their Java time equivalents.";
+    String description = "Migrates Joda-Time `AbstractInstant` method calls to their Java time equivalents, for both " +
+            "date times and instants.";
 
-    private static final MethodMatcher IS_AFTER_LONG = new MethodMatcher("org.joda.time.base.AbstractInstant isAfter(long)");
-    private static final MethodMatcher IS_BEFORE_LONG = new MethodMatcher("org.joda.time.base.AbstractInstant isBefore(long)");
-    private static final MethodMatcher IS_BEFORE_NOW = new MethodMatcher("org.joda.time.base.AbstractInstant isBeforeNow()");
-    private static final MethodMatcher IS_EQUAL_LONG = new MethodMatcher("org.joda.time.base.AbstractInstant isEqual(long)");
-    private static final MethodMatcher TO_DATE = new MethodMatcher("org.joda.time.base.AbstractInstant toDate()");
-    private static final MethodMatcher TO_STRING_FORMATTER = new MethodMatcher("org.joda.time.base.AbstractInstant toString(org.joda.time.format.DateTimeFormatter)");
-    private static final MethodMatcher TO_INSTANT = new MethodMatcher("org.joda.time.base.AbstractInstant toInstant()");
+    private static final MethodMatcher IS_AFTER_LONG = new MethodMatcher("org.joda.time.base.AbstractInstant isAfter(long)", true);
+    private static final MethodMatcher IS_BEFORE_LONG = new MethodMatcher("org.joda.time.base.AbstractInstant isBefore(long)", true);
+    private static final MethodMatcher IS_EQUAL_LONG = new MethodMatcher("org.joda.time.base.AbstractInstant isEqual(long)", true);
+    private static final MethodMatcher IS_AFTER_NOW = new MethodMatcher("org.joda.time.base.AbstractInstant isAfterNow()", true);
+    private static final MethodMatcher IS_BEFORE_NOW = new MethodMatcher("org.joda.time.base.AbstractInstant isBeforeNow()", true);
+    private static final MethodMatcher TO_DATE = new MethodMatcher("org.joda.time.base.AbstractInstant toDate()", true);
+    private static final MethodMatcher TO_STRING_FORMATTER = new MethodMatcher("org.joda.time.base.AbstractInstant toString(org.joda.time.format.DateTimeFormatter)", true);
+    private static final MethodMatcher TO_INSTANT = new MethodMatcher("org.joda.time.base.AbstractInstant toInstant()", true);
+    private static final MethodMatcher TO_DATE_TIME = new MethodMatcher("org.joda.time.base.AbstractInstant toDateTime()", true);
+    private static final MethodMatcher TO_DATE_TIME_ISO = new MethodMatcher("org.joda.time.base.AbstractInstant toDateTimeISO()", true);
+    private static final MethodMatcher TO_DATE_TIME_ZONE = new MethodMatcher("org.joda.time.base.AbstractInstant toDateTime(org.joda.time.DateTimeZone)", true);
     private static final MethodMatcher GET_MILLIS = new MethodMatcher("org.joda.time.base.BaseDateTime getMillis()");
-
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(new UsesType<>("org.joda.time.*", true), new JavaVisitor<ExecutionContext>() {
-            private boolean isInstantType(@Nullable Expression select) {
-                return select != null && TypeUtils.isOfClassType(select.getType(), "org.joda.time.Instant");
-            }
-
             @Override
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation m = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
+                Expression select = m.getSelect();
+                boolean isInstant = select != null && JodaTimeTypes.isInstant(select.getType());
+                boolean isDateTime = select != null && JodaTimeTypes.isDateTime(select.getType());
+                if (!isInstant && !isDateTime) {
+                    return m;
+                }
+                String receiver = isInstant ? "#{any(java.time.Instant)}" : "#{any(java.time.ZonedDateTime)}";
+                String instant = isInstant ? receiver : receiver + ".toInstant()";
                 if (IS_AFTER_LONG.matches(method)) {
-                    if (isInstantType(method.getSelect())) {
-                        maybeAddImport("java.time.Instant");
-                        return JavaTemplate.builder("#{any(java.time.Instant)}.isAfter(Instant.ofEpochMilli(#{any(long)}))")
-                                .imports("java.time.Instant").build()
-                                .apply(getCursor(), m.getCoordinates().replace(),
-                                        m.getSelect(), m.getArguments().get(0));
-                    }
-                    maybeAddImport("java.time.Instant");
-                    maybeAddImport("java.time.ZoneId");
-                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.isAfter(Instant.ofEpochMilli(#{any(long)}).atZone(ZoneId.systemDefault()))")
-                            .imports("java.time.Instant", "java.time.ZoneId").build()
-                            .apply(getCursor(), m.getCoordinates().replace(),
-                                    m.getSelect(), m.getArguments().get(0));
+                    return replace(m, instant + ".isAfter(Instant.ofEpochMilli(#{any(long)}))", select, m.getArguments().get(0));
                 }
                 if (IS_BEFORE_LONG.matches(method)) {
-                    if (isInstantType(method.getSelect())) {
-                        maybeAddImport("java.time.Instant");
-                        return JavaTemplate.builder("#{any(java.time.Instant)}.isBefore(Instant.ofEpochMilli(#{any(long)}))")
-                                .imports("java.time.Instant").build()
-                                .apply(getCursor(), m.getCoordinates().replace(),
-                                        m.getSelect(), m.getArguments().get(0));
-                    }
-                    maybeAddImport("java.time.Instant");
-                    maybeAddImport("java.time.ZoneId");
-                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.isBefore(Instant.ofEpochMilli(#{any(long)}).atZone(ZoneId.systemDefault()))")
-                            .imports("java.time.Instant", "java.time.ZoneId").build()
-                            .apply(getCursor(), m.getCoordinates().replace(),
-                                    m.getSelect(), m.getArguments().get(0));
-                }
-                if (IS_BEFORE_NOW.matches(method)) {
-                    maybeAddImport("java.time.ZonedDateTime");
-                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.isBefore(ZonedDateTime.now())")
-                            .imports("java.time.ZonedDateTime").build()
-                            .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
+                    return replace(m, instant + ".isBefore(Instant.ofEpochMilli(#{any(long)}))", select, m.getArguments().get(0));
                 }
                 if (IS_EQUAL_LONG.matches(method)) {
-                    maybeAddImport("java.time.Instant");
-                    maybeAddImport("java.time.ZoneId");
-                    return JavaTemplate.builder("#{any(java.time.ZonedDateTime)}.isEqual(Instant.ofEpochMilli(#{any(long)}).atZone(ZoneId.systemDefault()))")
-                            .imports("java.time.Instant", "java.time.ZoneId").build()
-                            .apply(getCursor(), m.getCoordinates().replace(),
-                                    m.getSelect(), m.getArguments().get(0));
+                    return replace(m, instant + ".equals(Instant.ofEpochMilli(#{any(long)}))", select, m.getArguments().get(0));
+                }
+                if (IS_AFTER_NOW.matches(method)) {
+                    return replace(m, receiver + ".isAfter(" + (isInstant ? "Instant" : "ZonedDateTime") + ".now())", select);
+                }
+                if (IS_BEFORE_NOW.matches(method)) {
+                    return replace(m, receiver + ".isBefore(" + (isInstant ? "Instant" : "ZonedDateTime") + ".now())", select);
                 }
                 if (TO_DATE.matches(method)) {
-                    maybeAddImport("java.util.Date");
-                    return JavaTemplate.builder("Date.from(#{any(java.time.ZonedDateTime)}.toInstant())")
-                            .imports("java.util.Date").build()
-                            .apply(getCursor(), m.getCoordinates().replace(), m.getSelect());
+                    return replace(m, "Date.from(" + instant + ")", select);
                 }
                 if (TO_STRING_FORMATTER.matches(method)) {
-                    return JavaTemplate.apply("#{any(java.time.ZonedDateTime)}.format(#{any(java.time.format.DateTimeFormatter)})", getCursor(), m.getCoordinates().replace(), m.getSelect(), m.getArguments().get(0));
+                    // Joda-Time prints an `Instant` in UTC, unless the formatter has a zone
+                    return replace(m, receiver + (isInstant ? ".atZone(ZoneOffset.UTC)" : "") + ".format(#{any(java.time.format.DateTimeFormatter)})",
+                            select, m.getArguments().get(0));
                 }
                 if (TO_INSTANT.matches(method)) {
-                    return JavaTemplate.apply("#{any(java.time.ZonedDateTime)}.toInstant()", getCursor(), m.getCoordinates().replace(), m.getSelect());
+                    return replace(m, instant, select);
+                }
+                if (TO_DATE_TIME.matches(method) || TO_DATE_TIME_ISO.matches(method)) {
+                    return replace(m, isInstant ? receiver + ".atZone(ZoneId.systemDefault())" : receiver, select);
+                }
+                if (TO_DATE_TIME_ZONE.matches(method)) {
+                    return replace(m, receiver + (isInstant ? ".atZone" : ".withZoneSameInstant") + "(#{any(java.time.ZoneId)})",
+                            select, m.getArguments().get(0));
                 }
                 if (GET_MILLIS.matches(method)) {
-                    return JavaTemplate.apply("#{any(java.time.ZonedDateTime)}.toInstant().toEpochMilli()", getCursor(), m.getCoordinates().replace(), m.getSelect());
+                    return replace(m, instant + ".toEpochMilli()", select);
                 }
                 return m;
+            }
+
+            private J replace(J.MethodInvocation m, String code, Object... parameters) {
+                String[] imports = {"java.time.Instant", "java.time.ZonedDateTime", "java.time.ZoneId", "java.time.ZoneOffset", "java.util.Date"};
+                for (String type : imports) {
+                    maybeAddImport(type);
+                }
+                return JavaTemplate.builder(code).imports(imports).build()
+                        .apply(getCursor(), m.getCoordinates().replace(), parameters);
             }
         });
     }

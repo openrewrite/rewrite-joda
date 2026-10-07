@@ -25,6 +25,7 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
@@ -65,9 +66,16 @@ public class JodaTimePeriodToJavaTime extends Recipe {
     private static final MethodMatcher SECONDS_GET_SECONDS = new MethodMatcher("org.joda.time.Seconds getSeconds()");
     private static final MethodMatcher SECONDS_TO_STANDARD_DURATION = new MethodMatcher("org.joda.time.Seconds toStandardDuration()");
 
+    private static final MethodMatcher WEEKS_WEEKS = new MethodMatcher("org.joda.time.Weeks weeks(int)");
+    private static final MethodMatcher MONTHS_MONTHS = new MethodMatcher("org.joda.time.Months months(int)");
+    private static final MethodMatcher YEARS_YEARS = new MethodMatcher("org.joda.time.Years years(int)");
+    private static final MethodMatcher PLUS = new MethodMatcher("org.joda.time..* plus(org.joda.time.ReadablePeriod)", true);
+    private static final MethodMatcher MINUS = new MethodMatcher("org.joda.time..* minus(org.joda.time.ReadablePeriod)", true);
+
     private static final List<String> JODA_PERIOD_TYPES = Arrays.asList(
             "org.joda.time.Days", "org.joda.time.Hours",
-            "org.joda.time.Minutes", "org.joda.time.Seconds"
+            "org.joda.time.Minutes", "org.joda.time.Seconds",
+            "org.joda.time.Weeks", "org.joda.time.Months", "org.joda.time.Years"
     );
 
     @Override
@@ -77,7 +85,10 @@ public class JodaTimePeriodToJavaTime extends Recipe {
                         new UsesType<>("org.joda.time.Days", true),
                         new UsesType<>("org.joda.time.Hours", true),
                         new UsesType<>("org.joda.time.Minutes", true),
-                        new UsesType<>("org.joda.time.Seconds", true)
+                        new UsesType<>("org.joda.time.Seconds", true),
+                        new UsesType<>("org.joda.time.Weeks", true),
+                        new UsesType<>("org.joda.time.Months", true),
+                        new UsesType<>("org.joda.time.Years", true)
                 ),
                 new JavaVisitor<ExecutionContext>() {
                     @Override
@@ -142,23 +153,27 @@ public class JodaTimePeriodToJavaTime extends Recipe {
                             }
                         }
 
-                        // Standalone factory: Days.days(n) -> Duration.ofDays(n)
-                        if (isFactoryCall(m)) {
-                            Object parentValue = getCursor().getParentTreeCursor().getValue();
-                            if (parentValue instanceof J.MethodInvocation &&
-                                    isToStandardDuration((J.MethodInvocation) parentValue)) {
-                                return m;
-                            }
+                        // Days.days(n) as the amount of plus() or minus() on a date or time
+                        if (isFactoryCall(m) || WEEKS_WEEKS.matches(m) || MONTHS_MONTHS.matches(m) || YEARS_YEARS.matches(m)) {
                             String type = getDeclaringTypeName(m);
-                            if (type == null) {
+                            Object parent = getCursor().getParentTreeCursor().getValue();
+                            if (type == null || !(parent instanceof J.MethodInvocation) || !(PLUS.matches((J.MethodInvocation) parent) || MINUS.matches((J.MethodInvocation) parent)) ||
+                                    !((J.MethodInvocation) parent).getArguments().contains(method)) {
                                 return m;
                             }
-                            String unit = getChronoUnit(type);
-                            String durationMethod = getDurationOfMethodFromUnit(unit);
-                            maybeAddImport("java.time.Duration");
+                            Expression target = ((J.MethodInvocation) parent).getSelect();
+                            boolean isTimeAmount = "org.joda.time.Hours".equals(type) || "org.joda.time.Minutes".equals(type) || "org.joda.time.Seconds".equals(type);
+                            if (target == null || isTimeAmount && JodaTimeTypes.isLocalDate(target.getType()) ||
+                                    !isTimeAmount && JodaTimeTypes.isLocalTime(target.getType())) {
+                                return m;
+                            }
+                            String factory = isTimeAmount ? "Duration." + getDurationOfMethodFromUnit(getChronoUnit(type)) :
+                                    "Period.of" + type.substring("org.joda.time.".length());
+                            String imported = isTimeAmount ? "java.time.Duration" : "java.time.Period";
+                            maybeAddImport(imported);
                             removeJodaPeriodImports();
-                            return JavaTemplate.builder("Duration." + durationMethod + "(#{any(int)})")
-                                    .imports("java.time.Duration").build()
+                            return JavaTemplate.builder(factory + "(#{any(int)})")
+                                    .imports(imported).build()
                                     .apply(getCursor(), m.getCoordinates().replace(), m.getArguments().get(0));
                         }
 

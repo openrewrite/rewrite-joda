@@ -99,19 +99,6 @@ recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: "org.joda.time.Duration getStandardSeconds()"
       newMethodName: getSeconds
-  # Duration conversion methods
-  - org.openrewrite.java.ChangeMethodName:
-      methodPattern: "org.joda.time.Duration toStandardDays()"
-      newMethodName: toDays
-  - org.openrewrite.java.ChangeMethodName:
-      methodPattern: "org.joda.time.Duration toStandardHours()"
-      newMethodName: toHours
-  - org.openrewrite.java.ChangeMethodName:
-      methodPattern: "org.joda.time.Duration toStandardMinutes()"
-      newMethodName: toMinutes
-  - org.openrewrite.java.ChangeMethodName:
-      methodPattern: "org.joda.time.Duration toStandardSeconds()"
-      newMethodName: getSeconds
   # DateTimeZone
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: "org.joda.time.DateTimeZone forID(String)"
@@ -129,6 +116,12 @@ recipeList:
       methodPattern: "org.joda.time.base.BaseDuration getMillis()"
       newMethodName: toMillis
       matchOverrides: true
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.ReadableDuration getMillis()"
+      newMethodName: toMillis
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: "org.joda.time.ReadableInstant getMillis()"
+      newMethodName: toEpochMilli
   # LocalDate accessors
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: "org.joda.time.LocalDate getMonthOfYear()"
@@ -211,6 +204,9 @@ recipeList:
       newFullyQualifiedTypeName: java.time.Instant
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.joda.time.Interval
+      newFullyQualifiedTypeName: org.threeten.extra.Interval
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.joda.time.ReadableInterval
       newFullyQualifiedTypeName: org.threeten.extra.Interval
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.joda.time.base.BaseInterval
