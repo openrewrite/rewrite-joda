@@ -273,3 +273,16 @@ return visitedParentheses.withTree(result);  // Preserves parentheses structure
 
 ### Add recipes to appropriate recipe collections
 Don't forget to add new recipes to relevant YAML files.
+
+## Migrations that change types
+
+### Later recipes see the output of earlier ones
+When several imperative recipes run in sequence, a receiver or argument may already have been rewritten to the
+new type (`new DateTime()` is `ZonedDateTime.now()` by the time the next recipe runs). Type checks must accept
+both the old type and its replacement, see `JodaTimeTypes`.
+
+### Same method name is not the same method
+Many methods survive a type change by name only. Joda-Time's `getDayOfWeek()` returns an `int`, `java.time`'s a
+`DayOfWeek`; `toStandardDays()` returns `Days`, the renamed `toDays()` a `long`; `DateTimeFormat.forPattern`
+and `DateTimeFormatter.ofPattern` read `Y`, `ZZ` and `ZZZ` differently. Compare return types and argument
+semantics, not just names, and translate string arguments such as patterns rather than copying them.
