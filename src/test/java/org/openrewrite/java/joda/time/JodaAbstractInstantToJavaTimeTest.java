@@ -163,4 +163,41 @@ class JodaAbstractInstantToJavaTimeTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void getMillisThroughReadableTypes() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.joda.time.ReadableDateTime;
+              import org.joda.time.ReadableInstant;
+
+              class A {
+                  long dateTime(ReadableDateTime dateTime) {
+                      return dateTime.getMillis();
+                  }
+
+                  long instant(ReadableInstant instant) {
+                      return instant.getMillis();
+                  }
+              }
+              """,
+            """
+              import java.time.Instant;
+              import java.time.ZonedDateTime;
+
+              class A {
+                  long dateTime(ZonedDateTime dateTime) {
+                      return dateTime.toInstant().toEpochMilli();
+                  }
+
+                  long instant(Instant instant) {
+                      return instant.toEpochMilli();
+                  }
+              }
+              """
+          )
+        );
+    }
 }

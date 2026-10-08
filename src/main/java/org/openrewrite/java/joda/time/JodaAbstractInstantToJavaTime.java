@@ -49,6 +49,7 @@ public class JodaAbstractInstantToJavaTime extends Recipe {
     private static final MethodMatcher TO_DATE_TIME_ISO = new MethodMatcher("org.joda.time.base.AbstractInstant toDateTimeISO()", true);
     private static final MethodMatcher TO_DATE_TIME_ZONE = new MethodMatcher("org.joda.time.base.AbstractInstant toDateTime(org.joda.time.DateTimeZone)", true);
     private static final MethodMatcher GET_MILLIS = new MethodMatcher("org.joda.time.base.BaseDateTime getMillis()");
+    private static final MethodMatcher GET_MILLIS_READABLE = new MethodMatcher("org.joda.time.ReadableInstant getMillis()");
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -57,7 +58,9 @@ public class JodaAbstractInstantToJavaTime extends Recipe {
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation m = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                 Expression select = m.getSelect();
-                boolean isInstant = select != null && JodaTimeTypes.isInstant(select.getType());
+                // a `ReadableInstant` becomes a `java.time.Instant`
+                boolean isInstant = select != null && (JodaTimeTypes.isInstant(select.getType()) ||
+                        TypeUtils.isOfClassType(select.getType(), "org.joda.time.ReadableInstant"));
                 boolean isDateTime = select != null && JodaTimeTypes.isDateTime(select.getType());
                 if (!isInstant && !isDateTime) {
                     return m;
@@ -97,7 +100,7 @@ public class JodaAbstractInstantToJavaTime extends Recipe {
                     return replace(m, receiver + (isInstant ? ".atZone" : ".withZoneSameInstant") + "(#{any(java.time.ZoneId)})",
                             select, m.getArguments().get(0));
                 }
-                if (GET_MILLIS.matches(method)) {
+                if (GET_MILLIS.matches(method) || GET_MILLIS_READABLE.matches(method)) {
                     return replace(m, instant + ".toEpochMilli()", select);
                 }
                 return m;

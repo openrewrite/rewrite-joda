@@ -115,9 +115,6 @@ recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: "org.joda.time.ReadableDuration getMillis()"
       newMethodName: toMillis
-  - org.openrewrite.java.ChangeMethodName:
-      methodPattern: "org.joda.time.ReadableInstant getMillis()"
-      newMethodName: toEpochMilli
   # LocalDate accessors
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: "org.joda.time.LocalDate getMonthOfYear()"
@@ -162,6 +159,9 @@ recipeList:
   # Phase 3: ChangeType and import cleanup (must run LAST)
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.joda.time.DateTime
+      newFullyQualifiedTypeName: java.time.ZonedDateTime
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.joda.time.ReadableDateTime
       newFullyQualifiedTypeName: java.time.ZonedDateTime
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.joda.time.base.BaseDateTime
