@@ -38,6 +38,8 @@ class NoJodaTimeTest implements RewriteTest {
     @Test
     void migrateJodaTime() {
         rewriteRun(
+          // ThreeTen-Extra is only added once the first cycle has migrated the source to `org.threeten.extra.Interval`
+          spec -> spec.expectedCyclesThatMakeChanges(2),
           mavenProject("foo",
             srcMainJava(
               // language=java

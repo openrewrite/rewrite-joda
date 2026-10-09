@@ -103,7 +103,8 @@ class JodaAbstractInstantToJavaTimeTest implements RewriteTest {
     }
 
     @Test
-    void migrateReadableInstant() {
+    void doNotMigrateReadableInstantThatReceivesAnInstant() {
+        // `ReadableInstant` becomes `ZonedDateTime`, like the `DateTime` values that usually flow through it
         // language=java
         rewriteRun(
           java(
@@ -117,18 +118,6 @@ class JodaAbstractInstantToJavaTimeTest implements RewriteTest {
                   }
                   public void bar() {
                       foo(new Instant());
-                  }
-              }
-              """,
-            """
-              import java.time.Instant;
-
-              class A {
-                  public void foo(Instant ri) {
-                      ri.toString();
-                  }
-                  public void bar() {
-                      foo(Instant.now());
                   }
               }
               """
@@ -184,7 +173,6 @@ class JodaAbstractInstantToJavaTimeTest implements RewriteTest {
               }
               """,
             """
-              import java.time.Instant;
               import java.time.ZonedDateTime;
 
               class A {
@@ -192,8 +180,8 @@ class JodaAbstractInstantToJavaTimeTest implements RewriteTest {
                       return dateTime.toInstant().toEpochMilli();
                   }
 
-                  long instant(Instant instant) {
-                      return instant.toEpochMilli();
+                  long instant(ZonedDateTime instant) {
+                      return instant.toInstant().toEpochMilli();
                   }
               }
               """
