@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.joda.time;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -178,59 +179,6 @@ class NoJodaTimeTest implements RewriteTest {
     }
 
     @Test
-    void leaveFileOnJodaTimeWhenNotEverythingCanBeMigrated() {
-        rewriteRun(
-          spec -> spec.dataTable(JodaTimeMigrationBlockers.Row.class, rows ->
-            assertThat(rows).extracting(JodaTimeMigrationBlockers.Row::getReason)
-              .anyMatch(reason -> reason.contains("MutableDateTime"))),
-          //language=java
-          java(
-            """
-              import org.joda.time.DateTime;
-              import org.joda.time.MutableDateTime;
-
-              class A {
-                  int minute(DateTime dt) {
-                      MutableDateTime m = dt.toMutableDateTime();
-                      return m.getMinuteOfHour() + dt.getHourOfDay();
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void leaveFilesOnJodaTimeThatShareSignaturesWithABlockedFile() {
-        rewriteRun(
-          spec -> spec.dataTable(JodaTimeMigrationBlockers.Row.class, rows ->
-            assertThat(rows).extracting(JodaTimeMigrationBlockers.Row::getSourcePath).containsExactlyInAnyOrder("A.java", "B.java")),
-          //language=java
-          java(
-            """
-              import org.joda.time.DateTime;
-
-              class A {
-                  DateTime created() {
-                      return DateTime.now();
-                  }
-              }
-              """
-          ),
-          //language=java
-          java(
-            """
-              class B {
-                  Object mutable(A a) {
-                      return a.created().toMutableDateTime();
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
     void migrateFilesThatShareSignaturesTogether() {
         rewriteRun(
           //language=java
@@ -313,189 +261,6 @@ class NoJodaTimeTest implements RewriteTest {
                   ZonedDateTime next(ZonedDateTime time) {
                       return DAY.truncate(time).plusDays(1);
                   }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void leaveInterfaceOnJodaTimeWhenItsImplementationIsInheritedFromABlockedClass() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.joda.time.Instant;
-
-              interface Spread {
-                  Instant getTime();
-              }
-              """
-          ),
-          //language=java
-          java(
-            """
-              import org.joda.time.Instant;
-
-              abstract class Temporal {
-                  static final String TYPE = "org.jadira.usertype.dateandtime.joda.PersistentInstantAsMillisLong";
-
-                  public Instant getTime() {
-                      return null;
-                  }
-              }
-              """
-          ),
-          //language=java
-          java(
-            """
-              class Book extends Temporal implements Spread {
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void leaveSupertypeOnJodaTimeWhenASubtypeIsBlocked() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.joda.time.DateTime;
-
-              interface ExportJob {
-                  DateTime createdAt();
-              }
-              """
-          ),
-          //language=java
-          java(
-            """
-              import org.joda.time.DateTime;
-
-              abstract class SearchExportJob implements ExportJob {
-                  static final String JODA = "org.joda.time";
-
-                  DateTime expiresAt() {
-                      return createdAt().plusDays(1);
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void generatedTypesBelongToTheTypeTheyAreGeneratedFrom() {
-        rewriteRun(
-          spec -> spec.parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "joda-time-2")
-            //language=java
-            .dependsOn(
-              """
-                import org.joda.time.DateTime;
-
-                public class AutoValue_Event extends Event {
-                    public AutoValue_Event(DateTime timestamp) {
-                    }
-                }
-                """
-            )),
-          //language=java
-          java(
-            """
-              import org.joda.time.DateTime;
-
-              public abstract class Event {
-                  public abstract DateTime timestamp();
-              }
-              """
-          ),
-          //language=java
-          java(
-            """
-              import org.joda.time.DateTime;
-              import org.joda.time.MutableDateTime;
-
-              class Events {
-                  Event create(MutableDateTime time) {
-                      return new AutoValue_Event(time.toDateTime());
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void leaveRuntimeTypeTestsOnJodaTime() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.joda.time.DateTime;
-
-              class FuncTest {
-                  long millis(Object o) {
-                      if (o instanceof DateTime) {
-                          return ((DateTime) o).getMillis();
-                      }
-                      return 0;
-                  }
-              }
-              """
-          ),
-          //language=java
-          java(
-            """
-              import org.joda.time.DateTimeZone;
-
-              import java.util.Map;
-
-              class Registry {
-                  void register(Map<Class<?>, Object> serializers, Object serializer) {
-                      serializers.put(DateTimeZone.class, serializer);
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void leaveHibernateEntitiesWithJodaTimeUserTypeAliasesOnJodaTime() {
-        rewriteRun(
-          spec -> spec.parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "joda-time-2")
-            //language=java
-            .dependsOn(
-              """
-                package org.hibernate.annotations;
-
-                public @interface Type {
-                    String type();
-                }
-                """
-            )),
-          //language=xml
-          xml(
-            """
-              <hibernate-mapping>
-                  <typedef name="dateTime" class="org.jadira.usertype.dateandtime.joda.PersistentDateTime"/>
-              </hibernate-mapping>
-              """,
-            spec -> spec.path("global.hbm.xml")
-          ),
-          //language=java
-          java(
-            """
-              import org.hibernate.annotations.Type;
-              import org.joda.time.DateTime;
-
-              class PortalCookieImpl {
-                  @Type(type = "dateTime")
-                  private DateTime created;
               }
               """
           )
@@ -612,169 +377,6 @@ class NoJodaTimeTest implements RewriteTest {
     }
 
     @Test
-    void doNotParseWithFormatterOfUnknownPattern() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.joda.time.DateTime;
-              import org.joda.time.format.DateTimeFormatter;
-
-              class A {
-                  DateTime parse(DateTimeFormatter formatter, String s) {
-                      return formatter.parseDateTime(s);
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void leaveObjectTypedWriterOnJodaTimeWhenTheReaderCasts() {
-        rewriteRun(
-          //language=java
-          //language=java
-          java(
-            """
-              import java.util.Map;
-
-              import org.joda.time.DateMidnight;
-
-              class CalendarController {
-                  long startMillis(Map<String, Object> session) {
-                      DateMidnight startDate = (DateMidnight) session.get("startDate");
-                      return startDate.getMillis();
-                  }
-              }
-              """
-          ),
-          //language=java
-          //language=java
-          java(
-            """
-              import java.util.Map;
-
-              import org.joda.time.DateMidnight;
-
-              class CalendarControllerTest {
-                  void test(Map<String, Object> session) {
-                      session.put("startDate", new DateMidnight());
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void leaveCallerOnJodaTimeWhenItPassesAnObjectThatIsTestedWithInstanceof() {
-        rewriteRun(
-          //language=java
-          //language=java
-          java(
-            """
-              import org.joda.time.DateTime;
-
-              class DateValidator {
-                  boolean validate(Object value) {
-                      return value instanceof DateTime && value.toString().endsWith("Z");
-                  }
-              }
-              """
-          ),
-          //language=java
-          //language=java
-          java(
-            """
-              import org.joda.time.DateTime;
-              import org.joda.time.DateTimeZone;
-
-              class DateValidatorTest {
-                  boolean test() {
-                      return new DateValidator().validate(new DateTime(DateTimeZone.UTC));
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void leaveTypesNamedInXmlConfigurationOnJodaTime() {
-        rewriteRun(
-          //language=xml
-          //language=xml
-          xml(
-            """
-              <beans>
-                  <bean id="portalPropertyEditorRegistrar" class="PortalPropertyEditorRegistrar">
-                      <property name="propertyEditors">
-                          <map key-type="java.lang.Class">
-                              <entry key="org.joda.time.ReadableDuration">
-                                  <bean class="ReadableDurationEditor"/>
-                              </entry>
-                          </map>
-                      </property>
-                  </bean>
-              </beans>
-              """,
-            spec -> spec.path("applicationContext.xml")
-          ),
-          //language=java
-          //language=java
-          java(
-            """
-              import java.beans.PropertyEditorSupport;
-
-              import org.joda.time.Duration;
-
-              public class ReadableDurationEditor extends PropertyEditorSupport {
-                  @Override
-                  public void setAsText(String text) {
-                      setValue(Duration.parse(text));
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void leaveTypesHandledByJodaNamedClassesOnJodaTime() {
-        rewriteRun(
-          //language=java
-          //language=java
-          java(
-            """
-              import org.joda.time.DateTime;
-
-              import java.util.function.Function;
-
-              public class JodaDateTimeCodec implements Function<String, DateTime> {
-                  @Override
-                  public DateTime apply(String value) {
-                      return DateTime.parse(value);
-                  }
-              }
-              """
-          ),
-          //language=java
-          //language=java
-          java(
-            """
-              import org.joda.time.DateTime;
-
-              public class User {
-                  public String name;
-                  public DateTime birthday;
-              }
-              """
-          )
-        );
-    }
-
-    @Test
     void classLiteralAsTypeTokenIsNotARuntimeTypeTest() {
         rewriteRun(
           spec -> spec.parser(JavaParser.fromJavaVersion()
@@ -835,76 +437,6 @@ class NoJodaTimeTest implements RewriteTest {
                   String test(Service service) {
                       return service.format(ArgumentMatchers.any(ZonedDateTime.class));
                   }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void hibernateTypedefWithAttributesInAnyOrder() {
-        rewriteRun(
-          spec -> spec.parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "joda-time-2")
-            //language=java
-            .dependsOn(
-              """
-                package org.hibernate.annotations;
-
-                public @interface Type {
-                    String type();
-                }
-                """
-            )),
-          //language=xml
-          //language=xml
-          xml(
-            """
-              <hibernate-mapping>
-                  <typedef class="org.jadira.usertype.dateandtime.joda.PersistentDateTime" name="dateTime"/>
-              </hibernate-mapping>
-              """,
-            spec -> spec.path("global.hbm.xml")
-          ),
-          //language=java
-          //language=java
-          java(
-            """
-              import org.hibernate.annotations.Type;
-              import org.joda.time.DateTime;
-
-              class PortalCookieImpl {
-                  @Type(type = "dateTime")
-                  private DateTime created;
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void subclassThatOnlyInheritsAJodaTimeMethodIsNotTiedToIt() {
-        rewriteRun(
-          spec -> spec.dataTable(JodaTimeMigrationBlockers.Row.class, rows ->
-            assertThat(rows).extracting(JodaTimeMigrationBlockers.Row::getSourcePath).containsOnly("Base.java")),
-          //language=java
-          java(
-            """
-              import org.joda.time.DateTime;
-
-              class Base {
-                  static final String JODA = "org.joda.time";
-
-                  DateTime time() {
-                      return DateTime.now();
-                  }
-              }
-              """
-          ),
-          //language=java
-          java(
-            """
-              class Sub extends Base {
               }
               """
           )
@@ -1283,85 +815,6 @@ class NoJodaTimeTest implements RewriteTest {
     }
 
     @Test
-    void leaveTypesLookedUpByTypeOnJodaTime() {
-        rewriteRun(
-          spec -> spec.dataTable(JodaTimeMigrationBlockers.Row.class, rows ->
-            assertThat(rows).extracting(JodaTimeMigrationBlockers.Row::getReason)
-              .contains("Uses `org.joda.time.DateTime`, which stays on Joda-Time in this repository because it is used as a `Class` value in `Registry.java`")),
-          //language=java
-          java(
-            """
-              import org.joda.time.DateTime;
-
-              import java.util.Map;
-
-              class Registry {
-                  void register(Map<Class<?>, Object> serializers, Object serializer) {
-                      serializers.put(DateTime.class, serializer);
-                  }
-              }
-              """
-          ),
-          //language=java
-          java(
-            """
-              import org.joda.time.DateTime;
-
-              class Event {
-                  DateTime created() {
-                      return DateTime.now();
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void leaveTypesOfAnnotatedJodaNamedIntegrationOnJodaTime() {
-        rewriteRun(
-          spec -> spec.parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "joda-time-2", "threeten-extra-1")
-            .dependsOn(
-              """
-                package org.rythmengine.extension;
-
-                public @interface Transformer {
-                }
-                """
-            )),
-          //language=java
-          java(
-            """
-              import org.joda.time.DateTimeZone;
-              import org.rythmengine.extension.Transformer;
-
-              public class JodaTransformers {
-                  @Transformer
-                  public static String shortStyle(DateTimeZone zone) {
-                      return zone.getID();
-                  }
-              }
-              """
-          ),
-          //language=java
-          java(
-            """
-              import org.joda.time.DateTimeZone;
-
-              class Settings {
-                  private DateTimeZone zone = DateTimeZone.UTC;
-
-                  DateTimeZone zone() {
-                      return zone;
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
     void migrateTypesLookedUpThroughASupertypeWhenRequested() {
         rewriteRun(
           spec -> spec.recipe(new NoJodaTime(singletonList("org.joda.time.DateTime"))),
@@ -1397,38 +850,6 @@ class NoJodaTimeTest implements RewriteTest {
               class Event {
                   ZonedDateTime created() {
                       return ZonedDateTime.now();
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void leaveTypesMappedWithJodaTimeUserTypesInXmlOnJodaTime() {
-        rewriteRun(
-          //language=xml
-          xml(
-            """
-              <hibernate-mapping>
-                  <typedef name="dateTime" class="org.jadira.usertype.dateandtime.joda.PersistentDateTime"/>
-                  <class name="Audit">
-                      <property name="created" type="dateTime"/>
-                  </class>
-              </hibernate-mapping>
-              """,
-            spec -> spec.path("global.hbm.xml")
-          ),
-          //language=java
-          java(
-            """
-              import org.joda.time.DateTime;
-
-              public class Audit {
-                  private DateTime created;
-
-                  public DateTime getCreated() {
-                      return created;
                   }
               }
               """
@@ -1494,123 +915,712 @@ class NoJodaTimeTest implements RewriteTest {
         );
     }
 
-    @Test
-    void doNotCreateADuplicateOverload() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.joda.time.DateTime;
-              import org.joda.time.DateTimeZone;
+    @Nested
+    class LeftOnJodaTime implements RewriteTest {
 
-              import java.time.ZoneId;
-              import java.time.ZonedDateTime;
+        @Override
+        public void defaults(RecipeSpec spec) {
+            NoJodaTimeTest.this.defaults(spec);
+        }
 
-              interface Clock {
-                  DateTime now(DateTimeZone zone);
+        @Test
+        void leaveFileOnJodaTimeWhenNotEverythingCanBeMigrated() {
+            rewriteRun(
+              spec -> spec.dataTable(JodaTimeMigrationBlockers.Row.class, rows ->
+                assertThat(rows).extracting(JodaTimeMigrationBlockers.Row::getReason)
+                  .anyMatch(reason -> reason.contains("MutableDateTime"))),
+              //language=java
+              java(
+                """
+                  import org.joda.time.DateTime;
+                  import org.joda.time.MutableDateTime;
 
-                  ZonedDateTime now(ZoneId zone);
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void doNotChangeJodaTimeIntegrations() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.joda.time.DateTime;
-
-              class JodaDateTimeType {
-                  boolean isAbleToStore(Object value) {
-                      return DateTime.class.isAssignableFrom(value.getClass());
+                  class A {
+                      int minute(DateTime dt) {
+                          MutableDateTime m = dt.toMutableDateTime();
+                          return m.getMinuteOfHour() + dt.getHourOfDay();
+                      }
                   }
-              }
-              """
-          )
-        );
-    }
+                  """
+              )
+            );
+        }
 
-    @Test
-    void doNotMigrateDateTimeParsedFromString() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.joda.time.DateTime;
+        @Test
+        void leaveFilesOnJodaTimeThatShareSignaturesWithABlockedFile() {
+            rewriteRun(
+              spec -> spec.dataTable(JodaTimeMigrationBlockers.Row.class, rows ->
+                assertThat(rows).extracting(JodaTimeMigrationBlockers.Row::getSourcePath).containsExactlyInAnyOrder("A.java", "B.java")),
+              //language=java
+              java(
+                """
+                  import org.joda.time.DateTime;
 
-              class A {
-                  DateTime parse(String s) {
-                      return new DateTime(s);
+                  class A {
+                      DateTime created() {
+                          return DateTime.now();
+                      }
                   }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void doNotTranslateWeekBasedPatterns() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.joda.time.format.DateTimeFormat;
-              import org.joda.time.format.DateTimeFormatter;
-
-              class A {
-                  DateTimeFormatter f() {
-                      return DateTimeFormat.forPattern("xxxx-'W'ww");
+                  """
+              ),
+              //language=java
+              java(
+                """
+                  class B {
+                      Object mutable(A a) {
+                          return a.created().toMutableDateTime();
+                      }
                   }
-              }
-              """
-          )
-        );
-    }
+                  """
+              )
+            );
+        }
 
-    @Test
-    void doNotChangeMutableDateTime() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.joda.time.MutableDateTime;
+        @Test
+        void leaveInterfaceOnJodaTimeWhenItsImplementationIsInheritedFromABlockedClass() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import org.joda.time.Instant;
 
-              class A {
-                  int minute(MutableDateTime m) {
-                      return m.getMinuteOfHour();
+                  interface Spread {
+                      Instant getTime();
                   }
-              }
-              """
-          )
-        );
-    }
+                  """
+              ),
+              //language=java
+              java(
+                """
+                  import org.joda.time.Instant;
 
-    @Test
-    void doNotChangePeriodsThatStayJodaTime() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.joda.time.DateTime;
-              import org.joda.time.Days;
-              import org.joda.time.ReadablePeriod;
-              import org.joda.time.Seconds;
+                  abstract class Temporal {
+                      static final String TYPE = "org.jadira.usertype.dateandtime.joda.PersistentInstantAsMillisLong";
 
-              class A {
-                  ReadablePeriod units(int n) {
-                      return Days.days(n);
+                      public Instant getTime() {
+                          return null;
+                      }
                   }
-
-                  Seconds wait(DateTime a, DateTime b) {
-                      return Seconds.secondsBetween(a, b);
+                  """
+              ),
+              //language=java
+              java(
+                """
+                  class Book extends Temporal implements Spread {
                   }
-              }
-              """
-          )
-        );
+                  """
+              )
+            );
+        }
+
+        @Test
+        void leaveSupertypeOnJodaTimeWhenASubtypeIsBlocked() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import org.joda.time.DateTime;
+
+                  interface ExportJob {
+                      DateTime createdAt();
+                  }
+                  """
+              ),
+              //language=java
+              java(
+                """
+                  import org.joda.time.DateTime;
+
+                  abstract class SearchExportJob implements ExportJob {
+                      static final String JODA = "org.joda.time";
+
+                      DateTime expiresAt() {
+                          return createdAt().plusDays(1);
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void generatedTypesBelongToTheTypeTheyAreGeneratedFrom() {
+            rewriteRun(
+              spec -> spec.parser(JavaParser.fromJavaVersion()
+                .classpathFromResources(new InMemoryExecutionContext(), "joda-time-2")
+                //language=java
+                .dependsOn(
+                  """
+                    import org.joda.time.DateTime;
+
+                    public class AutoValue_Event extends Event {
+                        public AutoValue_Event(DateTime timestamp) {
+                        }
+                    }
+                    """
+                )),
+              //language=java
+              java(
+                """
+                  import org.joda.time.DateTime;
+
+                  public abstract class Event {
+                      public abstract DateTime timestamp();
+                  }
+                  """
+              ),
+              //language=java
+              java(
+                """
+                  import org.joda.time.DateTime;
+                  import org.joda.time.MutableDateTime;
+
+                  class Events {
+                      Event create(MutableDateTime time) {
+                          return new AutoValue_Event(time.toDateTime());
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void leaveRuntimeTypeTestsOnJodaTime() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import org.joda.time.DateTime;
+
+                  class FuncTest {
+                      long millis(Object o) {
+                          if (o instanceof DateTime) {
+                              return ((DateTime) o).getMillis();
+                          }
+                          return 0;
+                      }
+                  }
+                  """
+              ),
+              //language=java
+              java(
+                """
+                  import org.joda.time.DateTimeZone;
+
+                  import java.util.Map;
+
+                  class Registry {
+                      void register(Map<Class<?>, Object> serializers, Object serializer) {
+                          serializers.put(DateTimeZone.class, serializer);
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void leaveHibernateEntitiesWithJodaTimeUserTypeAliasesOnJodaTime() {
+            rewriteRun(
+              spec -> spec.parser(JavaParser.fromJavaVersion()
+                .classpathFromResources(new InMemoryExecutionContext(), "joda-time-2")
+                //language=java
+                .dependsOn(
+                  """
+                    package org.hibernate.annotations;
+
+                    public @interface Type {
+                        String type();
+                    }
+                    """
+                )),
+              //language=xml
+              xml(
+                """
+                  <hibernate-mapping>
+                      <typedef name="dateTime" class="org.jadira.usertype.dateandtime.joda.PersistentDateTime"/>
+                  </hibernate-mapping>
+                  """,
+                spec -> spec.path("global.hbm.xml")
+              ),
+              //language=java
+              java(
+                """
+                  import org.hibernate.annotations.Type;
+                  import org.joda.time.DateTime;
+
+                  class PortalCookieImpl {
+                      @Type(type = "dateTime")
+                      private DateTime created;
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void doNotParseWithFormatterOfUnknownPattern() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import org.joda.time.DateTime;
+                  import org.joda.time.format.DateTimeFormatter;
+
+                  class A {
+                      DateTime parse(DateTimeFormatter formatter, String s) {
+                          return formatter.parseDateTime(s);
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void leaveObjectTypedWriterOnJodaTimeWhenTheReaderCasts() {
+            rewriteRun(
+              //language=java
+              //language=java
+              java(
+                """
+                  import java.util.Map;
+
+                  import org.joda.time.DateMidnight;
+
+                  class CalendarController {
+                      long startMillis(Map<String, Object> session) {
+                          DateMidnight startDate = (DateMidnight) session.get("startDate");
+                          return startDate.getMillis();
+                      }
+                  }
+                  """
+              ),
+              //language=java
+              //language=java
+              java(
+                """
+                  import java.util.Map;
+
+                  import org.joda.time.DateMidnight;
+
+                  class CalendarControllerTest {
+                      void test(Map<String, Object> session) {
+                          session.put("startDate", new DateMidnight());
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void leaveCallerOnJodaTimeWhenItPassesAnObjectThatIsTestedWithInstanceof() {
+            rewriteRun(
+              //language=java
+              //language=java
+              java(
+                """
+                  import org.joda.time.DateTime;
+
+                  class DateValidator {
+                      boolean validate(Object value) {
+                          return value instanceof DateTime && value.toString().endsWith("Z");
+                      }
+                  }
+                  """
+              ),
+              //language=java
+              //language=java
+              java(
+                """
+                  import org.joda.time.DateTime;
+                  import org.joda.time.DateTimeZone;
+
+                  class DateValidatorTest {
+                      boolean test() {
+                          return new DateValidator().validate(new DateTime(DateTimeZone.UTC));
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void leaveTypesNamedInXmlConfigurationOnJodaTime() {
+            rewriteRun(
+              //language=xml
+              //language=xml
+              xml(
+                """
+                  <beans>
+                      <bean id="portalPropertyEditorRegistrar" class="PortalPropertyEditorRegistrar">
+                          <property name="propertyEditors">
+                              <map key-type="java.lang.Class">
+                                  <entry key="org.joda.time.ReadableDuration">
+                                      <bean class="ReadableDurationEditor"/>
+                                  </entry>
+                              </map>
+                          </property>
+                      </bean>
+                  </beans>
+                  """,
+                spec -> spec.path("applicationContext.xml")
+              ),
+              //language=java
+              //language=java
+              java(
+                """
+                  import java.beans.PropertyEditorSupport;
+
+                  import org.joda.time.Duration;
+
+                  public class ReadableDurationEditor extends PropertyEditorSupport {
+                      @Override
+                      public void setAsText(String text) {
+                          setValue(Duration.parse(text));
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void leaveTypesHandledByJodaNamedClassesOnJodaTime() {
+            rewriteRun(
+              //language=java
+              //language=java
+              java(
+                """
+                  import org.joda.time.DateTime;
+
+                  import java.util.function.Function;
+
+                  public class JodaDateTimeCodec implements Function<String, DateTime> {
+                      @Override
+                      public DateTime apply(String value) {
+                          return DateTime.parse(value);
+                      }
+                  }
+                  """
+              ),
+              //language=java
+              //language=java
+              java(
+                """
+                  import org.joda.time.DateTime;
+
+                  public class User {
+                      public String name;
+                      public DateTime birthday;
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void hibernateTypedefWithAttributesInAnyOrder() {
+            rewriteRun(
+              spec -> spec.parser(JavaParser.fromJavaVersion()
+                .classpathFromResources(new InMemoryExecutionContext(), "joda-time-2")
+                //language=java
+                .dependsOn(
+                  """
+                    package org.hibernate.annotations;
+
+                    public @interface Type {
+                        String type();
+                    }
+                    """
+                )),
+              //language=xml
+              //language=xml
+              xml(
+                """
+                  <hibernate-mapping>
+                      <typedef class="org.jadira.usertype.dateandtime.joda.PersistentDateTime" name="dateTime"/>
+                  </hibernate-mapping>
+                  """,
+                spec -> spec.path("global.hbm.xml")
+              ),
+              //language=java
+              //language=java
+              java(
+                """
+                  import org.hibernate.annotations.Type;
+                  import org.joda.time.DateTime;
+
+                  class PortalCookieImpl {
+                      @Type(type = "dateTime")
+                      private DateTime created;
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void subclassThatOnlyInheritsAJodaTimeMethodIsNotTiedToIt() {
+            rewriteRun(
+              spec -> spec.dataTable(JodaTimeMigrationBlockers.Row.class, rows ->
+                assertThat(rows).extracting(JodaTimeMigrationBlockers.Row::getSourcePath).containsOnly("Base.java")),
+              //language=java
+              java(
+                """
+                  import org.joda.time.DateTime;
+
+                  class Base {
+                      static final String JODA = "org.joda.time";
+
+                      DateTime time() {
+                          return DateTime.now();
+                      }
+                  }
+                  """
+              ),
+              //language=java
+              java(
+                """
+                  class Sub extends Base {
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void leaveTypesLookedUpByTypeOnJodaTime() {
+            rewriteRun(
+              spec -> spec.dataTable(JodaTimeMigrationBlockers.Row.class, rows ->
+                assertThat(rows).extracting(JodaTimeMigrationBlockers.Row::getReason)
+                  .contains("Uses `org.joda.time.DateTime`, which stays on Joda-Time in this repository because it is used as a `Class` value in `Registry.java`")),
+              //language=java
+              java(
+                """
+                  import org.joda.time.DateTime;
+
+                  import java.util.Map;
+
+                  class Registry {
+                      void register(Map<Class<?>, Object> serializers, Object serializer) {
+                          serializers.put(DateTime.class, serializer);
+                      }
+                  }
+                  """
+              ),
+              //language=java
+              java(
+                """
+                  import org.joda.time.DateTime;
+
+                  class Event {
+                      DateTime created() {
+                          return DateTime.now();
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void leaveTypesOfAnnotatedJodaNamedIntegrationOnJodaTime() {
+            rewriteRun(
+              spec -> spec.parser(JavaParser.fromJavaVersion()
+                .classpathFromResources(new InMemoryExecutionContext(), "joda-time-2", "threeten-extra-1")
+                .dependsOn(
+                  """
+                    package org.rythmengine.extension;
+
+                    public @interface Transformer {
+                    }
+                    """
+                )),
+              //language=java
+              java(
+                """
+                  import org.joda.time.DateTimeZone;
+                  import org.rythmengine.extension.Transformer;
+
+                  public class JodaTransformers {
+                      @Transformer
+                      public static String shortStyle(DateTimeZone zone) {
+                          return zone.getID();
+                      }
+                  }
+                  """
+              ),
+              //language=java
+              java(
+                """
+                  import org.joda.time.DateTimeZone;
+
+                  class Settings {
+                      private DateTimeZone zone = DateTimeZone.UTC;
+
+                      DateTimeZone zone() {
+                          return zone;
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void leaveTypesMappedWithJodaTimeUserTypesInXmlOnJodaTime() {
+            rewriteRun(
+              //language=xml
+              xml(
+                """
+                  <hibernate-mapping>
+                      <typedef name="dateTime" class="org.jadira.usertype.dateandtime.joda.PersistentDateTime"/>
+                      <class name="Audit">
+                          <property name="created" type="dateTime"/>
+                      </class>
+                  </hibernate-mapping>
+                  """,
+                spec -> spec.path("global.hbm.xml")
+              ),
+              //language=java
+              java(
+                """
+                  import org.joda.time.DateTime;
+
+                  public class Audit {
+                      private DateTime created;
+
+                      public DateTime getCreated() {
+                          return created;
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void doNotCreateADuplicateOverload() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import org.joda.time.DateTime;
+                  import org.joda.time.DateTimeZone;
+
+                  import java.time.ZoneId;
+                  import java.time.ZonedDateTime;
+
+                  interface Clock {
+                      DateTime now(DateTimeZone zone);
+
+                      ZonedDateTime now(ZoneId zone);
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void doNotChangeJodaTimeIntegrations() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import org.joda.time.DateTime;
+
+                  class JodaDateTimeType {
+                      boolean isAbleToStore(Object value) {
+                          return DateTime.class.isAssignableFrom(value.getClass());
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void doNotMigrateDateTimeParsedFromString() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import org.joda.time.DateTime;
+
+                  class A {
+                      DateTime parse(String s) {
+                          return new DateTime(s);
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void doNotTranslateWeekBasedPatterns() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import org.joda.time.format.DateTimeFormat;
+                  import org.joda.time.format.DateTimeFormatter;
+
+                  class A {
+                      DateTimeFormatter f() {
+                          return DateTimeFormat.forPattern("xxxx-'W'ww");
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void doNotChangeMutableDateTime() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import org.joda.time.MutableDateTime;
+
+                  class A {
+                      int minute(MutableDateTime m) {
+                          return m.getMinuteOfHour();
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void doNotChangePeriodsThatStayJodaTime() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import org.joda.time.DateTime;
+                  import org.joda.time.Days;
+                  import org.joda.time.ReadablePeriod;
+                  import org.joda.time.Seconds;
+
+                  class A {
+                      ReadablePeriod units(int n) {
+                          return Days.days(n);
+                      }
+
+                      Seconds wait(DateTime a, DateTime b) {
+                          return Seconds.secondsBetween(a, b);
+                      }
+                  }
+                  """
+              )
+            );
+        }
     }
 }
