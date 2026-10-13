@@ -41,6 +41,7 @@ import java.util.regex.Pattern;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 
 /// Migrates Joda-Time to `java.time`, but only where the result is complete.
@@ -53,7 +54,7 @@ import static java.util.Collections.singletonList;
 /// never meets a caller or an override that was left on Joda-Time.
 @Value
 @EqualsAndHashCode(callSuper = false)
-public class JodaTimeToJavaTime extends ScanningRecipe<JodaTimeToJavaTime.Accumulator> {
+public class NoJodaTime extends ScanningRecipe<NoJodaTime.Accumulator> {
 
     private static final List<Recipe> MIGRATION = Arrays.asList(
             // Rename methods first, while their receivers are still typed as Joda-Time
@@ -160,9 +161,12 @@ public class JodaTimeToJavaTime extends ScanningRecipe<JodaTimeToJavaTime.Accumu
     @Nullable
     List<String> migrateDespiteTypeLookups;
 
-    String displayName = "Migrate Joda-Time to `java.time` where it can be done completely";
+    String displayName = "Prefer the Java standard library instead of Joda-Time";
 
-    String description = "Migrates Joda-Time types and method calls to `java.time` and ThreeTen-Extra. " +
+    String description = "Before Java 8, Java lacked a robust date and time library, leading to the widespread use of " +
+            "Joda-Time to fill this gap. With the release of Java 8, the `java.time` package was introduced, incorporating " +
+            "most of Joda-Time's concepts, and features deemed too specialized for `java.time` were included in the " +
+            "ThreeTen-Extra library. This recipe migrates Joda-Time types and method calls to `java.time` and ThreeTen-Extra. " +
             "Source files that pass Joda-Time values to each other through method signatures, fields or supertypes are " +
             "migrated together, and only when every Joda-Time usage in all of them has a `java.time` mapping, so that " +
             "the result compiles. To limit changes in behaviour, a Joda-Time type also stays on Joda-Time throughout " +
@@ -174,6 +178,8 @@ public class JodaTimeToJavaTime extends ScanningRecipe<JodaTimeToJavaTime.Accumu
             "looked up by type, as for example `ZonedDateTime.toString()` and `ZoneOffset.UTC.getId()` differ from " +
             "their Joda-Time counterparts. Everything that is left on Joda-Time is listed with the reason in the " +
             "Joda-Time migration blockers data table.";
+
+    Set<String> tags = singleton("joda-time");
 
     transient JodaTimeMigrationBlockers blockers = new JodaTimeMigrationBlockers(this);
 
@@ -1212,7 +1218,7 @@ public class JodaTimeToJavaTime extends ScanningRecipe<JodaTimeToJavaTime.Accumu
     private static @Nullable Class<?> loadClass(String fullyQualifiedName) {
         return CLASSES.computeIfAbsent(fullyQualifiedName, name -> {
             try {
-                return Optional.of(Class.forName(name, false, JodaTimeToJavaTime.class.getClassLoader()));
+                return Optional.of(Class.forName(name, false, NoJodaTime.class.getClassLoader()));
             } catch (ClassNotFoundException | LinkageError e) {
                 return Optional.empty();
             }
