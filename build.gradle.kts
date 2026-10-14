@@ -15,6 +15,7 @@ dependencies {
     implementation("org.openrewrite:rewrite-java")
 
     implementation("org.openrewrite.recipe:rewrite-java-dependencies:${rewriteVersion}")
+    implementation("org.threeten:threeten-extra:1.8.0")
 
     testImplementation("org.openrewrite:rewrite-test")
     testImplementation("org.openrewrite:rewrite-maven")
