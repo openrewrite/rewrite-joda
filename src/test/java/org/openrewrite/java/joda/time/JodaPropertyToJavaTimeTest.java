@@ -16,6 +16,7 @@
 package org.openrewrite.java.joda.time;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -31,6 +32,7 @@ class JodaPropertyToJavaTimeTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "joda-time-2", "threeten-extra-1"));
     }
 
+    @DocumentExample
     @Test
     void propertyIdioms() {
         rewriteRun(

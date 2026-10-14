@@ -27,7 +27,10 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
-import org.openrewrite.java.tree.*;
+import org.openrewrite.java.tree.Expression;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -122,8 +125,8 @@ public class JodaFormatterToJavaTime extends Recipe {
                             .apply(getCursor(), m.getCoordinates().replace());
                 }
                 if (ISO.matches(method) && ISO_FORMATS.containsKey(m.getSimpleName())) {
-                    maybeAddImport("java.time.format.DateTimeFormatter");
                     maybeRemoveImport("org.joda.time.format.ISODateTimeFormat");
+                    maybeAddImport("java.time.format.DateTimeFormatter");
                     return JavaTemplate.builder(ISO_FORMATS.get(m.getSimpleName()))
                             .imports("java.time.format.DateTimeFormatter").build()
                             .apply(getCursor(), m.getCoordinates().replace());

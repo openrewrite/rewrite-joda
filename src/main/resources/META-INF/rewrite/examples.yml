@@ -47,7 +47,6 @@ examples:
     after: |
       import java.time.Duration;
       import java.time.Instant;
-      import java.time.ZoneId;
       import java.time.ZonedDateTime;
       import java.time.format.DateTimeFormatter;
       import java.util.Date;
@@ -56,16 +55,16 @@ examples:
           public void foo() {
               ZonedDateTime.now().equals(ZonedDateTime.now());
               ZonedDateTime.now().getZone();
-              ZonedDateTime.now().isAfter(Instant.ofEpochMilli(1234567890L).atZone(ZoneId.systemDefault()));
+              ZonedDateTime.now().toInstant().isAfter(Instant.ofEpochMilli(1234567890L));
               Instant.now().isAfter(Instant.ofEpochMilli(1234567890L));
               ZonedDateTime.now().isAfter(ZonedDateTime.now().minusDays(1));
               Instant.now().isAfter(Instant.now().minus(Duration.ofDays(1)));
-              ZonedDateTime.now().isBefore(Instant.ofEpochMilli(1234567890L).atZone(ZoneId.systemDefault()));
+              ZonedDateTime.now().toInstant().isBefore(Instant.ofEpochMilli(1234567890L));
               Instant.now().isBefore(Instant.ofEpochMilli(1234567890L));
               ZonedDateTime.now().isBefore(ZonedDateTime.now().plusDays(1));
               Instant.now().isBefore(Instant.now().plus(Duration.ofDays(1)));
               ZonedDateTime.now().isBefore(ZonedDateTime.now());
-              ZonedDateTime.now().isEqual(Instant.ofEpochMilli(1234567890L).atZone(ZoneId.systemDefault()));
+              ZonedDateTime.now().toInstant().equals(Instant.ofEpochMilli(1234567890L));
               ZonedDateTime.now().isEqual(ZonedDateTime.now().plusDays(1));
               Date.from(ZonedDateTime.now().toInstant());
               ZonedDateTime.now().toInstant();
@@ -87,11 +86,10 @@ examples:
     after: |
       import java.time.LocalDate;
       import java.time.ZoneId;
-      import java.time.ZoneOffset;
 
       class A {
           public void foo() {
-              LocalDate.now().atStartOfDay(ZoneOffset.of(ZoneId.systemDefault().getId()));
+              LocalDate.now().atStartOfDay(ZoneId.systemDefault());
           }
       }
     language: java
@@ -133,8 +131,8 @@ examples:
               ZonedDateTime.of(2024, 9, 30, 12, 58, 0, 0, ZoneOffset.ofHours(2));
               ZonedDateTime.of(2024, 9, 30, 13, 3, 15, 0, ZoneId.systemDefault());
               ZonedDateTime.of(2024, 9, 30, 13, 3, 15, 0, ZoneOffset.ofHoursMinutes(5, 30));
-              ZonedDateTime.of(2024, 9, 30, 13, 49, 15, 545 * 1_000_000, ZoneId.systemDefault());
-              ZonedDateTime.of(2024, 9, 30, 13, 49, 15, 545 * 1_000_000, TimeZone.getTimeZone("America/New_York").toZoneId());
+              ZonedDateTime.of(2024, 9, 30, 13, 49, 15, 545_000_000, ZoneId.systemDefault());
+              ZonedDateTime.of(2024, 9, 30, 13, 49, 15, 545_000_000, TimeZone.getTimeZone("America/New_York").toZoneId());
           }
       }
     language: java
@@ -288,7 +286,7 @@ examples:
               Instant.now().getMillis();
               Instant.now().minus(Duration.standardDays(1L));
               Instant.ofEpochMilli(1234567890L);
-              Instant.parse("2024-10-25T15:45:00");
+              Instant.parse("2024-10-25T15:45:00Z");
               Instant.now().plus(Duration.standardDays(1L));
           }
       }
@@ -302,7 +300,7 @@ examples:
               Instant.now().toEpochMilli();
               Instant.now().minus(Duration.ofDays(1L));
               Instant.ofEpochMilli(1234567890L);
-              Instant.parse("2024-10-25T15:45:00");
+              Instant.parse("2024-10-25T15:45:00Z");
               Instant.now().plus(Duration.ofDays(1L));
           }
       }
