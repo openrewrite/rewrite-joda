@@ -438,6 +438,49 @@ examples:
           }
       }
     language: java
+- description: '`JodaPropertyToJavaTimeTest#propertyIdioms`'
+  sources:
+  - before: |
+      import org.joda.time.DateTime;
+      import org.joda.time.LocalDate;
+
+      import java.util.Locale;
+
+      class A {
+          LocalDate endOfMonth(LocalDate d) {
+              return d.dayOfMonth().withMaximumValue();
+          }
+
+          DateTime hour(DateTime d) {
+              return d.hourOfDay().roundFloorCopy();
+          }
+
+          String month(LocalDate d, Locale locale) {
+              return d.monthOfYear().getAsText(locale);
+          }
+      }
+    after: |
+      import java.time.LocalDate;
+      import java.time.ZonedDateTime;
+      import java.time.format.TextStyle;
+      import java.time.temporal.ChronoUnit;
+      import java.time.temporal.TemporalAdjusters;
+      import java.util.Locale;
+
+      class A {
+          LocalDate endOfMonth(LocalDate d) {
+              return d.with(TemporalAdjusters.lastDayOfMonth());
+          }
+
+          ZonedDateTime hour(ZonedDateTime d) {
+              return d.truncatedTo(ChronoUnit.HOURS);
+          }
+
+          String month(LocalDate d, Locale locale) {
+              return d.getMonth().getDisplayName(TextStyle.FULL, locale);
+          }
+      }
+    language: java
 - description: '`JodaTimePeriodToJavaTimeTest#daysBetweenGetDays`'
   sources:
   - before: |
