@@ -18,8 +18,6 @@ dependencies {
 
     testImplementation("org.openrewrite:rewrite-test")
     testImplementation("org.openrewrite:rewrite-maven")
-
-    testRuntimeOnly("org.openrewrite:rewrite-java-21")
 }
 
 recipeDependencies {
