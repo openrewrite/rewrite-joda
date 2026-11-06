@@ -58,9 +58,7 @@ public class JodaAbstractInstantToJavaTime extends Recipe {
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation m = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                 Expression select = m.getSelect();
-                // a `ReadableInstant` becomes a `java.time.Instant`
-                boolean isInstant = select != null && (JodaTimeTypes.isInstant(select.getType()) ||
-                        TypeUtils.isOfClassType(select.getType(), "org.joda.time.ReadableInstant"));
+                boolean isInstant = select != null && JodaTimeTypes.isInstant(select.getType());
                 boolean isDateTime = select != null && JodaTimeTypes.isDateTime(select.getType());
                 if (!isInstant && !isDateTime) {
                     return m;
