@@ -50,6 +50,7 @@ final class JodaTimeTypes {
         return TypeUtils.isOfClassType(type, "org.joda.time.DateTime") ||
                 TypeUtils.isOfClassType(type, "org.joda.time.DateMidnight") ||
                 TypeUtils.isOfClassType(type, "org.joda.time.ReadableDateTime") ||
+                TypeUtils.isOfClassType(type, "org.joda.time.ReadableInstant") ||
                 TypeUtils.isOfClassType(type, "java.time.ZonedDateTime");
     }
 

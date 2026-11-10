@@ -204,7 +204,7 @@ public class JodaDateTimeToJavaTime extends Recipe {
                             .imports("java.time.ZonedDateTime").build()
                             .apply(getCursor(), m.getCoordinates().replace(), m.getArguments().get(0));
                 }
-                if (DT_PARSE.matches(method)) {
+                if (DT_PARSE.matches(method) && isIsoZonedDateTime(m.getArguments().get(0))) {
                     maybeAddImport("java.time.ZonedDateTime");
                     return JavaTemplate.builder("ZonedDateTime.parse(#{any(String)})")
                             .imports("java.time.ZonedDateTime").build()
