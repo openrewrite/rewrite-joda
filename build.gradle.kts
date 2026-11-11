@@ -24,3 +24,8 @@ recipeDependencies {
     parserClasspath("org.threeten:threeten-extra:1.8.0")
     testParserClasspath("joda-time:joda-time:2.12.3")
 }
+
+tasks.withType<Test>().configureEach {
+    // Fails a test whose recipe gives the code it writes other types than a parser gives that code
+    systemProperty("org.openrewrite.test.parserTypedTrees", true)
+}
