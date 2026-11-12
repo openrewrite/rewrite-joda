@@ -41,7 +41,7 @@ class JodaDateTimeZoneToJavaTimeTest implements RewriteTest {
     void migrateDateTimeZone() {
         //language=java
         rewriteRun(
-          // ChangeType gives a call it moves onto java.time the Joda-Time method, with only the type names changed
+          // ChangeType renames the types in a call's Joda-Time method but keeps the method, such as plusDays(int)
           spec -> spec.recipeQualityValidation(RecipeQualityValidation.builder().parserTypedTrees(false).build()),
           java(
             """
