@@ -21,6 +21,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.test.RecipeQualityValidation;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -156,6 +157,8 @@ class JodaTimePeriodToJavaTimeTest implements RewriteTest {
     void standaloneFactoryCallAsAmountToAdd() {
         // language=java
         rewriteRun(
+          // ChangeType gives a call it moves onto java.time the Joda-Time method, with only the type names changed
+          spec -> spec.recipeQualityValidation(RecipeQualityValidation.builder().parserTypedTrees(false).build()),
           java(
             """
               import org.joda.time.DateTime;
@@ -345,6 +348,8 @@ class JodaTimePeriodToJavaTimeTest implements RewriteTest {
     @Test
     void periodsAsAmountToAdd() {
         rewriteRun(
+          // ChangeType gives a call it moves onto java.time the Joda-Time method, with only the type names changed
+          spec -> spec.recipeQualityValidation(RecipeQualityValidation.builder().parserTypedTrees(false).build()),
           //language=java
           java(
             """
